@@ -20,7 +20,7 @@ marketplace.camunda.com, "Become a Contributor", Submit Connector).
 | --- | --- |
 | Splash title | Put Cohere chat, embeddings, and reranking to work in your processes |
 | Splash description | Cohere builds enterprise-grade language models with industry-leading retrieval capabilities. This connector brings them into Camunda as an element template on the native REST connector: ask a model for an answer, force a schema-conformant JSON response, classify a text into your own labels for routing decisions, embed texts for semantic search, and rerank retrieved documents by relevance before an AI agent or a human sees them. It runs on both SaaS and Self-Managed from 8.5 with no custom runtime to host, and it ships with a verified example process. |
-| Overview image | `screenshots/cohere-operations.png` (properties panel with the Operation dropdown open); alternate: `screenshots/cohere-models.png` (model lineup) |
+| Overview image | `screenshots/cohere-sample-process.png` (triage sample diagram + template panel, primary); extras: `screenshots/cohere-operations.png` (operations dropdown), `screenshots/cohere-models.png` (model lineup) |
 | Documentation link | https://github.com/zishan-c8academy/camunda-connector-cohere (README) |
 
 ## Features

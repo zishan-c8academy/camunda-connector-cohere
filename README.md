@@ -10,7 +10,7 @@ output, text classification, embeddings, and reranking, straight from a service 
 
 Created by Zishan Ali Khan (Camunda). Community connector, not an official Cohere product.
 
-![The Cohere template in Web Modeler](screenshots/cohere-operations.png)
+![The customer feedback triage sample with the Cohere template applied in Web Modeler](screenshots/cohere-sample-process.png)
 
 ## Features
 
