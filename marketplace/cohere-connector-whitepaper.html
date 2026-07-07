@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The Cohere Connector for Camunda 8</title>
+<style>
+  @page { size: A4; margin: 18mm 16mm 20mm 16mm; }
+  * { box-sizing: border-box; }
+  body { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; color: #1c2b28; margin: 0; font-size: 10.5pt; line-height: 1.55; }
+  .cover { border-bottom: 6px solid #FF7759; padding-bottom: 18px; margin-bottom: 26px; }
+  .brand { display: flex; align-items: center; gap: 10px; margin-bottom: 26px; }
+  .brand .dot { width: 14px; height: 14px; border-radius: 4px; }
+  .brand .label { font-size: 9pt; letter-spacing: 2.5px; text-transform: uppercase; color: #39594D; font-weight: 600; }
+  h1 { font-size: 25pt; line-height: 1.15; margin: 0 0 8px 0; color: #22332f; }
+  .subtitle { font-size: 12.5pt; color: #4d5f5a; margin: 0 0 18px 0; }
+  .byline { font-size: 10pt; color: #39594D; }
+  .byline strong { color: #22332f; }
+  h2 { font-size: 14.5pt; color: #22332f; margin: 26px 0 8px 0; padding-bottom: 4px; border-bottom: 2px solid #D18EE2; }
+  h3 { font-size: 11.5pt; color: #39594D; margin: 16px 0 4px 0; }
+  p { margin: 6px 0; }
+  table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 9.5pt; }
+  th { background: #39594D; color: #fff; text-align: left; padding: 6px 8px; font-weight: 600; }
+  td { border: 1px solid #d7e0dd; padding: 6px 8px; vertical-align: top; }
+  tr:nth-child(even) td { background: #f4f7f6; }
+  code, pre { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 9pt; }
+  code { background: #f0f3f2; padding: 1px 4px; border-radius: 3px; }
+  pre { background: #f0f3f2; border-left: 3px solid #FF7759; padding: 8px 10px; border-radius: 3px; overflow-x: hidden; white-space: pre-wrap; word-break: break-word; margin: 8px 0; }
+  .callout { background: #fdf1ee; border-left: 4px solid #FF7759; padding: 10px 12px; margin: 12px 0; border-radius: 3px; }
+  .callout .title { font-weight: 700; color: #b04a33; font-size: 10pt; margin-bottom: 2px; }
+  .verified { background: #eef5f2; border-left: 4px solid #39594D; padding: 10px 12px; margin: 12px 0; border-radius: 3px; }
+  img.diagram { width: 100%; border: 1px solid #d7e0dd; border-radius: 4px; margin: 10px 0; }
+  .pagebreak { page-break-before: always; }
+  .footer-note { margin-top: 28px; padding-top: 10px; border-top: 1px solid #d7e0dd; font-size: 8.5pt; color: #66756f; }
+  ul { margin: 6px 0 6px 18px; padding: 0; }
+  li { margin: 3px 0; }
+  a { color: #b04a33; text-decoration: none; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="brand">
+    <span class="dot" style="background:#39594D"></span>
+    <span class="dot" style="background:#FF7759"></span>
+    <span class="dot" style="background:#D18EE2"></span>
+    <span class="label">Community Connector Whitepaper</span>
+  </div>
+  <h1>The Cohere Connector for Camunda 8</h1>
+  <p class="subtitle">Chat, structured JSON output, classification, embeddings, and reranking inside BPMN processes, with zero custom runtime</p>
+  <p class="byline">Created by <strong>Zishan Ali Khan</strong>, Solutions Engineer at Camunda &middot; July 2026 &middot; MIT licensed<br>
+  github.com/zishan-c8academy/camunda-connector-cohere</p>
+</div>
+
+<h2>1. Executive summary</h2>
+<p>The Cohere Connector brings Cohere's language models into Camunda 8 processes as a native element template. Process designers pick an operation from a dropdown, fill in a handful of friendly fields, and the built-in Camunda REST connector does the rest. There is no Java to build, no connector runtime to host, and no infrastructure beyond what a Camunda cluster already provides. The connector works on Camunda SaaS and Self-Managed from version 8.5, and every operation described in this paper was verified end to end against a live Camunda 8.9 SaaS cluster before release.</p>
+<p>Beyond the expected chat operation, the connector focuses on the capabilities that matter most inside orchestrated processes: answers that are guaranteed to be valid JSON, classifications that are guaranteed to be one of your labels, and reranking, which reorders retrieved documents by true relevance before an AI agent or a human sees them.</p>
+
+<h2>2. Why Cohere inside a process engine</h2>
+<p>Language models are probabilistic; business processes need to be deterministic about what happens next. The practical answer is to put the model inside an orchestration that constrains it: validate its output, route on its answers, escalate to humans when confidence is low, and audit every step. Camunda provides that discipline, and this connector provides the bridge.</p>
+<p>Cohere is a strong fit for this pattern for three reasons:</p>
+<ul>
+  <li><strong>Retrieval strength.</strong> Cohere Rerank is an industry benchmark for relevance reordering, and it is the missing middle step in most retrieval-augmented (RAG) processes: retrieve broadly, rerank precisely, then generate.</li>
+  <li><strong>Structured outputs.</strong> Cohere's structured output mode can force answers to conform to a JSON Schema, including enum constraints, which turns free-text generation into something a gateway can safely route on.</li>
+  <li><strong>A pragmatic model range.</strong> From the flagship Command A family down to fast, low-cost small models, the right model can be chosen per task, and the connector exposes the full current lineup plus a custom field for fine-tuned models.</li>
+</ul>
+
+<h2>3. Architecture: a template, not a runtime</h2>
+<p>The connector is an element template layered on Camunda's native REST connector (<code>io.camunda:http-json:1</code>). When a designer applies the template to a service task and picks an operation, the template writes the correct endpoint, authentication, request body, and result mapping into the model as plain input mappings and FEEL expressions. At runtime, the standard Camunda connector infrastructure executes the HTTP call.</p>
+<table>
+  <tr><th>Property</th><th>Consequence</th></tr>
+  <tr><td>No custom code or runtime</td><td>Nothing to build, host, patch, or scale; works wherever the built-in connectors work</td></tr>
+  <tr><td>Runs on SaaS and Self-Managed 8.5+</td><td>One artifact for every Camunda 8 deployment model</td></tr>
+  <tr><td>Everything is visible FEEL</td><td>The exact request body and result mapping are inspectable and editable in the properties panel; no black box</td></tr>
+  <tr><td>Secrets stay in the cluster</td><td>The API key is referenced as <code>{{secrets.COHERE_API_KEY}}</code> and never stored in the model or repository</td></tr>
+</table>
+
+<h2>4. Operations reference</h2>
+<table>
+  <tr><th>Operation</th><th>Cohere endpoint</th><th>Result variables</th></tr>
+  <tr><td>Chat: ask Cohere</td><td>POST /v2/chat</td><td><code>cohereReply</code>, <code>cohereFinishReason</code>, <code>cohereUsage</code> (billed tokens)</td></tr>
+  <tr><td>Chat: structured JSON output</td><td>POST /v2/chat with response_format</td><td><code>cohereJson</code> (guaranteed valid JSON, schema-conformant if a schema is set), <code>cohereUsage</code></td></tr>
+  <tr><td>Classify: label a text</td><td>POST /v2/chat, temperature 0, enum-constrained</td><td><code>cohereLabel</code> (exactly one of the allowed labels)</td></tr>
+  <tr><td>Embeddings: embed texts</td><td>POST /v2/embed</td><td><code>cohereEmbeddings</code> (one float vector per text), <code>cohereEmbedBilledTokens</code></td></tr>
+  <tr><td>Rerank: rank documents by relevance</td><td>POST /v2/rerank</td><td><code>cohereRanked</code> (list of position and score pairs, 1-based)</td></tr>
+  <tr><td>Utility: list available models</td><td>GET /v1/models</td><td><code>cohereModels</code> (names with supported endpoints)</td></tr>
+</table>
+<p>Every operation carries a model dropdown with the current Cohere lineup (Command A+, Command A, Command A Reasoning, the Command R family, Aya, Embed v4, and the Rerank v3.5 and v4 families) plus a custom model field for fine-tuned or newly released models.</p>
+
+<div class="pagebreak"></div>
+
+<h2>5. Reliability engineering notes</h2>
+<p>Three design decisions in this connector came directly from live testing, and they are worth understanding because they generalize to any LLM-in-a-process design.</p>
+
+<h3>5.1 Classification is enforced, not requested</h3>
+<p>Cohere retired its dedicated Classify endpoint in September 2025, so classification runs through chat. The first implementation used a strict instruction: respond with exactly one label and nothing else. In cluster testing, a question-shaped input defeated it; the model helpfully answered the customer's question instead of labeling it. The shipped implementation therefore does not ask the model to behave. It constrains the response with a structured-output enum built from the designer's label list, so the API cannot return anything outside that list. The label arrives ready for gateway conditions such as <code>=cohereLabel = "approve"</code>.</p>
+<div class="callout">
+  <div class="title">Takeaway</div>
+  Prompt instructions are requests; schemas are guarantees. Where a process routes on model output, prefer the guarantee.
+</div>
+
+<h3>5.2 Error expressions must stay conditional</h3>
+<p>In the Camunda REST connector, the error expression is evaluated after every invocation, including successful ones. An unconditional <code>bpmnError(...)</code> therefore fires on success too. The connector documents and defaults to the conditional form:</p>
+<pre>=if error != null and error.code = "429"
+then bpmnError("COHERE_RATE_LIMIT", "Cohere rate limit hit") else null</pre>
+
+<h3>5.3 Rerank positions are 1-based on purpose</h3>
+<p>Cohere returns 0-based document indices; FEEL lists are 1-based. The connector converts at the boundary, so the ranked positions index FEEL lists directly, and one output mapping rebuilds the ordered document list:</p>
+<pre>=for r in cohereRanked return rerankDocuments[r.position]</pre>
+
+<h2>6. Patterns</h2>
+<h3>Route on a classification</h3>
+<p>Classify with labels such as <code>=["approve", "review", "reject"]</code>, then gate each path on <code>cohereLabel</code>. Because the label is enum-enforced at temperature 0, the gateway needs no fallback parsing.</p>
+<h3>Rerank between retrieval and generation</h3>
+<p>Vector stores retrieve broadly; agents reason expensively. Put Rerank between them: pass the retrieved texts and the user's question, keep the top few, and let the generation step work from relevance-ordered context. In the sample process this pattern grounds a support answer in the two most relevant help articles.</p>
+<h3>Guaranteed JSON for downstream automation</h3>
+<p>Provide a JSON Schema and the structured output operation returns a string guaranteed to parse as JSON conforming to it, for example extracting a severity enum and a summary from a complaint. Parse it downstream in a job worker, script task, or AI agent step.</p>
+<h3>Token cost as a process variable</h3>
+<p>Chat operations map Cohere's billed token counts into <code>cohereUsage</code> on every instance, so cost can be aggregated in Camunda Optimize variable reports or inspected per instance in Operate.</p>
+
+<div class="pagebreak"></div>
+
+<h2>7. The sample process, verified</h2>
+<p>The repository ships a ready-to-open sample, Customer Feedback Triage, with the template applied to every task: classify an incoming message, route on the label, answer questions with a rerank-grounded reply, and turn complaints into structured JSON for a human queue.</p>
+<img class="diagram" src="../screenshots/cohere-sample-process.png" alt="Customer feedback triage sample in Web Modeler">
+<p>Both branches were verified on a live Camunda 8.9 SaaS cluster. One real complaint-path run, verbatim:</p>
+<div class="verified">
+  <p style="margin:0 0 4px 0"><strong>Input:</strong> "The export button has said 'loading' since Tuesday. My coffee has gone cold twice waiting for it, and cold coffee is a severity of its own."</p>
+  <p style="margin:0"><strong>Output:</strong> <code>cohereLabel = "complaint"</code>, and <code>complaintJson</code>: severity "high", summary "The export button has been stuck on 'loading' for several days, causing significant delays and frustration, resulting in cold coffee twice."</p>
+</div>
+
+<h2>8. Security and operations</h2>
+<ul>
+  <li><strong>Credentials:</strong> the API key lives in Camunda's secret store and is referenced as <code>{{secrets.COHERE_API_KEY}}</code>; it never appears in models, repositories, or logs.</li>
+  <li><strong>Rate limits:</strong> Cohere trial keys allow roughly 20 requests per minute; the template defaults to 3 retries with a 10 second backoff to stay within that.</li>
+  <li><strong>Timeouts:</strong> the read timeout defaults to 120 seconds to accommodate long generations; both timeouts are configurable per task.</li>
+  <li><strong>Auditability:</strong> every request body and result mapping is plain FEEL in the model, and every model answer lands in process variables visible in Operate.</li>
+</ul>
+
+<h2>9. Getting started</h2>
+<ul>
+  <li>Download <code>src/cohere-connector.json</code> from the repository and upload it to Web Modeler (or the Desktop Modeler element templates folder).</li>
+  <li>Create an API key at dashboard.cohere.com and store it as a cluster secret named <code>COHERE_API_KEY</code>.</li>
+  <li>Apply the Cohere template to a service task, pick an operation, deploy, and run. The sample process and an automated verification script are in the repository's <code>example</code> folder.</li>
+</ul>
+
+<h2>10. About the author</h2>
+<p><strong>Zishan Ali Khan</strong> is a Solutions Engineer at Camunda. He built this connector following the community element template pattern, verified every operation against the live Cohere API and a Camunda 8.9 SaaS cluster, and maintains it at <a href="https://github.com/zishan-c8academy/camunda-connector-cohere">github.com/zishan-c8academy/camunda-connector-cohere</a>. Improvements and issue reports are welcome there.</p>
+<p>Acknowledgment: the element-template-over-REST-connector approach follows the pattern established by community connectors on Camunda Marketplace, notably William Marcq's Mistral connector.</p>
+
+<div class="footer-note">
+  The Cohere Connector for Camunda 8 &middot; Community connector, MIT licensed &middot; Created by Zishan Ali Khan (Camunda) &middot; July 2026<br>
+  Cohere is a trademark of Cohere Inc. Camunda is a trademark of Camunda Services GmbH. This is a community project, not an official product of either company.
+</div>
+
+</body>
+</html>
