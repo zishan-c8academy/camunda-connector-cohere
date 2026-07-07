@@ -1,3 +1,16 @@
+DISCLAIMER
+
+This is a third-party community connector created and maintained by Zishan Ali Khan.
+It was developed independently and is not an official product of Camunda or Cohere;
+neither company endorses it or provides support or warranties for it. Support is
+best-effort via GitHub issues on this repository.
+
+For distribution through Camunda Marketplace: contact information may be shared
+between Camunda and the connector author in accordance with the Camunda Marketplace
+terms.
+
+------------------------------------------------------------------------------
+
 MIT License
 
 Copyright (c) 2026 Zishan Ali Khan
