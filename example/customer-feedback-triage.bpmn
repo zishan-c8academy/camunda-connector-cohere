@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_CohereTriage" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.35.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.9.0">
+  <bpmn:process id="CohereFeedbackTriage" name="Customer Feedback Triage (Cohere sample)" isExecutable="true">
+    <bpmn:startEvent id="Start_Feedback" name="Feedback received">
+      <bpmn:outgoing>Flow_ToClassify</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="Task_ClassifyFeedback" name="Classify feedback" zeebe:modelerTemplate="io.github.zishan-c8academy.cohere-connector.v1" zeebe:modelerTemplateVersion="3" zeebe:modelerTemplateIcon="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGcgY2xpcC1wYXRoPSJ1cmwoI2NsaXAwXzM5MTVfMjE5NikiPgo8cGF0aCBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGNsaXAtcnVsZT0iZXZlbm9kZCIgZD0iTTEwLjM2MTUgMTkuMDUzQzExLjIwMTYgMTkuMDUzIDEyLjg3MjYgMTkuMDA1NyAxNS4xODIzIDE4LjAzMDdDMTcuODczOSAxNi44OTQ1IDIzLjIyOSAxNC44MzE4IDI3LjA5MTkgMTIuNzEzMkMyOS43OTM2IDExLjIzMTQgMzAuOTc3OSA5LjI3MTU5IDMwLjk3NzkgNi42MzIzNkMzMC45NzggMi45Njk0MyAyOC4wODE5IDAgMjQuNTA5NCAwSDkuNTQxMjdDNC40MDk4MyAwIDAuMjUgNC4yNjUxNCAwLjI1IDkuNTI2NDlDMC4yNSAxNC43ODc4IDQuMTQ0ODMgMTkuMDUzIDEwLjM2MTUgMTkuMDUzWiIgZmlsbD0iIzM1NTE0NiIvPgo8cGF0aCBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGNsaXAtcnVsZT0iZXZlbm9kZCIgZD0iTTEyLjg5MjggMjUuNjE2MUMxMi44OTI4IDIzLjAzNzEgMTQuNDA3MSAyMC43MTE4IDE2LjczMDMgMTkuNzIzMUwyMS40NDQxIDE3LjcxNzNDMjYuMjEyMSAxNS42ODg0IDMxLjQ2IDE5LjI4MSAzMS40NiAyNC41NzQxQzMxLjQ2IDI4LjY3NDkgMjguMjE3MiAzMS45OTkgMjQuMjE3NiAzMS45OTc5TDE5LjExNCAzMS45OTY1QzE1LjY3NzggMzEuOTk1NiAxMi44OTI4IDI5LjEzOTIgMTIuODkyOCAyNS42MTYxWiIgZmlsbD0iI0QxOEVFMiIvPgo8cGF0aCBkPSJNNS42MDYxNSAyMC4zMDQ3SDUuNjA2MDZDMi42NDc5OSAyMC4zMDQ3IDAuMjUgMjIuNzYzNCAwLjI1IDI1Ljc5NjNWMjYuNTA3NkMwLjI1IDI5LjU0MDYgMi42NDc5OSAzMS45OTkzIDUuNjA2MDYgMzEuOTk5M0g1LjYwNjE1QzguNTY0MjIgMzEuOTk5MyAxMC45NjIyIDI5LjU0MDYgMTAuOTYyMiAyNi41MDc2VjI1Ljc5NjNDMTAuOTYyMiAyMi43NjM0IDguNTY0MjIgMjAuMzA0NyA1LjYwNjE1IDIwLjMwNDdaIiBmaWxsPSIjRkY3NzU5Ii8+CjwvZz4KPGRlZnM+CjxjbGlwUGF0aCBpZD0iY2xpcDBfMzkxNV8yMTk2Ij4KPHJlY3Qgd2lkdGg9IjMxLjIwOTkiIGhlaWdodD0iMzIiIGZpbGw9IndoaXRlIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLjI1KSIvPgo8L2NsaXBQYXRoPgo8L2RlZnM+Cjwvc3ZnPgo=">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="io.camunda:http-json:1" retries="3" />
+        <zeebe:ioMapping>
+          <zeebe:input source="classify" target="operationId" />
+          <zeebe:input source="bearer" target="authentication.type" />
+          <zeebe:input source="{{secrets.COHERE_API_KEY}}" target="authentication.token" />
+          <zeebe:input source="https://api.cohere.com" target="baseUrl" />
+          <zeebe:input source="30" target="connectionTimeoutInSeconds" />
+          <zeebe:input source="120" target="readTimeoutInSeconds" />
+          <zeebe:input source="=&#34;/v2/chat&#34;" target="operationPath" />
+          <zeebe:input source="= baseUrl + operationPath" target="url" />
+          <zeebe:input source="POST" target="method" />
+          <zeebe:input source="command-r7b-12-2024" target="classifyModel" />
+          <zeebe:input source="=customerMessage" target="classifyText" />
+          <zeebe:input source="=[&#34;complaint&#34;, &#34;question&#34;, &#34;praise&#34;]" target="classifyLabels" />
+          <zeebe:input source="={&#34;model&#34;: (if classifyModel = &#34;custom&#34; then classifyModelCustom else classifyModel), &#34;messages&#34;: [{&#34;role&#34;: &#34;user&#34;, &#34;content&#34;: &#34;Classify the following text into exactly one label. Text: &#34; + classifyText}], &#34;temperature&#34;: 0, &#34;max_tokens&#34;: 20, &#34;response_format&#34;: {&#34;type&#34;: &#34;json_object&#34;, &#34;schema&#34;: {&#34;type&#34;: &#34;object&#34;, &#34;properties&#34;: {&#34;label&#34;: {&#34;type&#34;: &#34;string&#34;, &#34;enum&#34;: classifyLabels}}, &#34;required&#34;: [&#34;label&#34;]}}}" target="body" />
+        </zeebe:ioMapping>
+        <zeebe:taskHeaders>
+          <zeebe:header key="resultExpression" value="={cohereLabel: replace(response.body.message.content[1].text, &#34;^.*\&#34;label\&#34;[^\&#34;]*\&#34;([^\&#34;]*)\&#34;.*$&#34;, &#34;$1&#34;, &#34;s&#34;)}" />
+          <zeebe:header key="retryBackoff" value="PT10S" />
+        </zeebe:taskHeaders>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_ToClassify</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToSplit</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_FeedbackType" name="What kind of feedback?" default="Flow_Praise">
+      <bpmn:incoming>Flow_ToSplit</bpmn:incoming>
+      <bpmn:outgoing>Flow_Question</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Complaint</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Praise</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_RankArticles" name="Find relevant help articles" zeebe:modelerTemplate="io.github.zishan-c8academy.cohere-connector.v1" zeebe:modelerTemplateVersion="3" zeebe:modelerTemplateIcon="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGcgY2xpcC1wYXRoPSJ1cmwoI2NsaXAwXzM5MTVfMjE5NikiPgo8cGF0aCBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGNsaXAtcnVsZT0iZXZlbm9kZCIgZD0iTTEwLjM2MTUgMTkuMDUzQzExLjIwMTYgMTkuMDUzIDEyLjg3MjYgMTkuMDA1NyAxNS4xODIzIDE4LjAzMDdDMTcuODczOSAxNi44OTQ1IDIzLjIyOSAxNC44MzE4IDI3LjA5MTkgMTIuNzEzMkMyOS43OTM2IDExLjIzMTQgMzAuOTc3OSA5LjI3MTU5IDMwLjk3NzkgNi42MzIzNkMzMC45NzggMi45Njk0MyAyOC4wODE5IDAgMjQuNTA5NCAwSDkuNTQxMjdDNC40MDk4MyAwIDAuMjUgNC4yNjUxNCAwLjI1IDkuNTI2NDlDMC4yNSAxNC43ODc4IDQuMTQ0ODMgMTkuMDUzIDEwLjM2MTUgMTkuMDUzWiIgZmlsbD0iIzM1NTE0NiIvPgo8cGF0aCBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGNsaXAtcnVsZT0iZXZlbm9kZCIgZD0iTTEyLjg5MjggMjUuNjE2MUMxMi44OTI4IDIzLjAzNzEgMTQuNDA3MSAyMC43MTE4IDE2LjczMDMgMTkuNzIzMUwyMS40NDQxIDE3LjcxNzNDMjYuMjEyMSAxNS42ODg0IDMxLjQ2IDE5LjI4MSAzMS40NiAyNC41NzQxQzMxLjQ2IDI4LjY3NDkgMjguMjE3MiAzMS45OTkgMjQuMjE3NiAzMS45OTc5TDE5LjExNCAzMS45OTY1QzE1LjY3NzggMzEuOTk1NiAxMi44OTI4IDI5LjEzOTIgMTIuODkyOCAyNS42MTYxWiIgZmlsbD0iI0QxOEVFMiIvPgo8cGF0aCBkPSJNNS42MDYxNSAyMC4zMDQ3SDUuNjA2MDZDMi42NDc5OSAyMC4zMDQ3IDAuMjUgMjIuNzYzNCAwLjI1IDI1Ljc5NjNWMjYuNTA3NkMwLjI1IDI5LjU0MDYgMi42NDc5OSAzMS45OTkzIDUuNjA2MDYgMzEuOTk5M0g1LjYwNjE1QzguNTY0MjIgMzEuOTk5MyAxMC45NjIyIDI5LjU0MDYgMTAuOTYyMiAyNi41MDc2VjI1Ljc5NjNDMTAuOTYyMiAyMi43NjM0IDguNTY0MjIgMjAuMzA0NyA1LjYwNjE1IDIwLjMwNDdaIiBmaWxsPSIjRkY3NzU5Ii8+CjwvZz4KPGRlZnM+CjxjbGlwUGF0aCBpZD0iY2xpcDBfMzkxNV8yMTk2Ij4KPHJlY3Qgd2lkdGg9IjMxLjIwOTkiIGhlaWdodD0iMzIiIGZpbGw9IndoaXRlIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLjI1KSIvPgo8L2NsaXBQYXRoPgo8L2RlZnM+Cjwvc3ZnPgo=">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="io.camunda:http-json:1" retries="3" />
+        <zeebe:ioMapping>
+          <zeebe:input source="rerank" target="operationId" />
+          <zeebe:input source="bearer" target="authentication.type" />
+          <zeebe:input source="{{secrets.COHERE_API_KEY}}" target="authentication.token" />
+          <zeebe:input source="https://api.cohere.com" target="baseUrl" />
+          <zeebe:input source="30" target="connectionTimeoutInSeconds" />
+          <zeebe:input source="120" target="readTimeoutInSeconds" />
+          <zeebe:input source="=&#34;/v2/rerank&#34;" target="operationPath" />
+          <zeebe:input source="= baseUrl + operationPath" target="url" />
+          <zeebe:input source="POST" target="method" />
+          <zeebe:input source="rerank-v3.5" target="rerankModel" />
+          <zeebe:input source="=customerMessage" target="rerankQuery" />
+          <zeebe:input source="=[&#34;To reset your password, open Settings, choose Security, and select Reset password. Turning it off and on again is not required, but we respect the tradition.&#34;, &#34;Invoices appear under Billing as PDF downloads at the start of each month, arriving more punctually than most stand-up meetings.&#34;, &#34;You can upgrade or downgrade your plan at any time under Billing, Plan. No exit interview, no guilt trip.&#34;, &#34;Enable two-factor authentication under Settings, Security, with any TOTP app. Your future self sends thanks from a more secure timeline.&#34;]" target="rerankDocuments" />
+          <zeebe:input source="2" target="rerankTopN" />
+          <zeebe:input source="={&#34;model&#34;: (if rerankModel = &#34;custom&#34; then rerankModelCustom else rerankModel), &#34;query&#34;: rerankQuery, &#34;documents&#34;: rerankDocuments, &#34;top_n&#34;: number(rerankTopN)}" target="body" />
+          <zeebe:output source="=for r in cohereRanked return rerankDocuments[r.position]" target="rankedDocs" />
+        </zeebe:ioMapping>
+        <zeebe:taskHeaders>
+          <zeebe:header key="resultExpression" value="={cohereRanked: for r in response.body.results return {position: r.index + 1, score: r.relevance_score}}" />
+          <zeebe:header key="retryBackoff" value="PT10S" />
+        </zeebe:taskHeaders>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_Question</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToAnswer</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_DraftAnswer" name="Draft grounded answer" zeebe:modelerTemplate="io.github.zishan-c8academy.cohere-connector.v1" zeebe:modelerTemplateVersion="3" zeebe:modelerTemplateIcon="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGcgY2xpcC1wYXRoPSJ1cmwoI2NsaXAwXzM5MTVfMjE5NikiPgo8cGF0aCBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGNsaXAtcnVsZT0iZXZlbm9kZCIgZD0iTTEwLjM2MTUgMTkuMDUzQzExLjIwMTYgMTkuMDUzIDEyLjg3MjYgMTkuMDA1NyAxNS4xODIzIDE4LjAzMDdDMTcuODczOSAxNi44OTQ1IDIzLjIyOSAxNC44MzE4IDI3LjA5MTkgMTIuNzEzMkMyOS43OTM2IDExLjIzMTQgMzAuOTc3OSA5LjI3MTU5IDMwLjk3NzkgNi42MzIzNkMzMC45NzggMi45Njk0MyAyOC4wODE5IDAgMjQuNTA5NCAwSDkuNTQxMjdDNC40MDk4MyAwIDAuMjUgNC4yNjUxNCAwLjI1IDkuNTI2NDlDMC4yNSAxNC43ODc4IDQuMTQ0ODMgMTkuMDUzIDEwLjM2MTUgMTkuMDUzWiIgZmlsbD0iIzM1NTE0NiIvPgo8cGF0aCBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGNsaXAtcnVsZT0iZXZlbm9kZCIgZD0iTTEyLjg5MjggMjUuNjE2MUMxMi44OTI4IDIzLjAzNzEgMTQuNDA3MSAyMC43MTE4IDE2LjczMDMgMTkuNzIzMUwyMS40NDQxIDE3LjcxNzNDMjYuMjEyMSAxNS42ODg0IDMxLjQ2IDE5LjI4MSAzMS40NiAyNC41NzQxQzMxLjQ2IDI4LjY3NDkgMjguMjE3MiAzMS45OTkgMjQuMjE3NiAzMS45OTc5TDE5LjExNCAzMS45OTY1QzE1LjY3NzggMzEuOTk1NiAxMi44OTI4IDI5LjEzOTIgMTIuODkyOCAyNS42MTYxWiIgZmlsbD0iI0QxOEVFMiIvPgo8cGF0aCBkPSJNNS42MDYxNSAyMC4zMDQ3SDUuNjA2MDZDMi42NDc5OSAyMC4zMDQ3IDAuMjUgMjIuNzYzNCAwLjI1IDI1Ljc5NjNWMjYuNTA3NkMwLjI1IDI5LjU0MDYgMi42NDc5OSAzMS45OTkzIDUuNjA2MDYgMzEuOTk5M0g1LjYwNjE1QzguNTY0MjIgMzEuOTk5MyAxMC45NjIyIDI5LjU0MDYgMTAuOTYyMiAyNi41MDc2VjI1Ljc5NjNDMTAuOTYyMiAyMi43NjM0IDguNTY0MjIgMjAuMzA0NyA1LjYwNjE1IDIwLjMwNDdaIiBmaWxsPSIjRkY3NzU5Ii8+CjwvZz4KPGRlZnM+CjxjbGlwUGF0aCBpZD0iY2xpcDBfMzkxNV8yMTk2Ij4KPHJlY3Qgd2lkdGg9IjMxLjIwOTkiIGhlaWdodD0iMzIiIGZpbGw9IndoaXRlIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLjI1KSIvPgo8L2NsaXBQYXRoPgo8L2RlZnM+Cjwvc3ZnPgo=">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="io.camunda:http-json:1" retries="3" />
+        <zeebe:ioMapping>
+          <zeebe:input source="chat" target="operationId" />
+          <zeebe:input source="bearer" target="authentication.type" />
+          <zeebe:input source="{{secrets.COHERE_API_KEY}}" target="authentication.token" />
+          <zeebe:input source="https://api.cohere.com" target="baseUrl" />
+          <zeebe:input source="30" target="connectionTimeoutInSeconds" />
+          <zeebe:input source="120" target="readTimeoutInSeconds" />
+          <zeebe:input source="=&#34;/v2/chat&#34;" target="operationPath" />
+          <zeebe:input source="= baseUrl + operationPath" target="url" />
+          <zeebe:input source="POST" target="method" />
+          <zeebe:input source="command-r7b-12-2024" target="chatModel" />
+          <zeebe:input source="You are a support assistant. Answer the customer question using ONLY the provided help articles. Be brief and friendly." target="chatSystemPrompt" />
+          <zeebe:input source="=&#34;Customer question: &#34; + customerMessage + &#34; --- Help articles: &#34; + string join(rankedDocs, &#34; | &#34;)" target="chatUserPrompt" />
+          <zeebe:input source="0.3" target="chatTemperature" />
+          <zeebe:input source="150" target="chatMaxTokens" />
+          <zeebe:input source="={&#34;model&#34;: (if chatModel = &#34;custom&#34; then chatModelCustom else chatModel), &#34;messages&#34;: [{&#34;role&#34;: &#34;system&#34;, &#34;content&#34;: chatSystemPrompt}, {&#34;role&#34;: &#34;user&#34;, &#34;content&#34;: chatUserPrompt}], &#34;temperature&#34;: number(chatTemperature), &#34;max_tokens&#34;: number(chatMaxTokens)}" target="body" />
+        </zeebe:ioMapping>
+        <zeebe:taskHeaders>
+          <zeebe:header key="resultExpression" value="={draftAnswer: response.body.message.content[1].text, cohereUsage: response.body.usage.billed_units}" />
+          <zeebe:header key="retryBackoff" value="PT10S" />
+        </zeebe:taskHeaders>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_ToAnswer</bpmn:incoming>
+      <bpmn:outgoing>Flow_AnswerToJoin</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_ExtractSeverity" name="Extract severity and summary" zeebe:modelerTemplate="io.github.zishan-c8academy.cohere-connector.v1" zeebe:modelerTemplateVersion="3" zeebe:modelerTemplateIcon="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGcgY2xpcC1wYXRoPSJ1cmwoI2NsaXAwXzM5MTVfMjE5NikiPgo8cGF0aCBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGNsaXAtcnVsZT0iZXZlbm9kZCIgZD0iTTEwLjM2MTUgMTkuMDUzQzExLjIwMTYgMTkuMDUzIDEyLjg3MjYgMTkuMDA1NyAxNS4xODIzIDE4LjAzMDdDMTcuODczOSAxNi44OTQ1IDIzLjIyOSAxNC44MzE4IDI3LjA5MTkgMTIuNzEzMkMyOS43OTM2IDExLjIzMTQgMzAuOTc3OSA5LjI3MTU5IDMwLjk3NzkgNi42MzIzNkMzMC45NzggMi45Njk0MyAyOC4wODE5IDAgMjQuNTA5NCAwSDkuNTQxMjdDNC40MDk4MyAwIDAuMjUgNC4yNjUxNCAwLjI1IDkuNTI2NDlDMC4yNSAxNC43ODc4IDQuMTQ0ODMgMTkuMDUzIDEwLjM2MTUgMTkuMDUzWiIgZmlsbD0iIzM1NTE0NiIvPgo8cGF0aCBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGNsaXAtcnVsZT0iZXZlbm9kZCIgZD0iTTEyLjg5MjggMjUuNjE2MUMxMi44OTI4IDIzLjAzNzEgMTQuNDA3MSAyMC43MTE4IDE2LjczMDMgMTkuNzIzMUwyMS40NDQxIDE3LjcxNzNDMjYuMjEyMSAxNS42ODg0IDMxLjQ2IDE5LjI4MSAzMS40NiAyNC41NzQxQzMxLjQ2IDI4LjY3NDkgMjguMjE3MiAzMS45OTkgMjQuMjE3NiAzMS45OTc5TDE5LjExNCAzMS45OTY1QzE1LjY3NzggMzEuOTk1NiAxMi44OTI4IDI5LjEzOTIgMTIuODkyOCAyNS42MTYxWiIgZmlsbD0iI0QxOEVFMiIvPgo8cGF0aCBkPSJNNS42MDYxNSAyMC4zMDQ3SDUuNjA2MDZDMi42NDc5OSAyMC4zMDQ3IDAuMjUgMjIuNzYzNCAwLjI1IDI1Ljc5NjNWMjYuNTA3NkMwLjI1IDI5LjU0MDYgMi42NDc5OSAzMS45OTkzIDUuNjA2MDYgMzEuOTk5M0g1LjYwNjE1QzguNTY0MjIgMzEuOTk5MyAxMC45NjIyIDI5LjU0MDYgMTAuOTYyMiAyNi41MDc2VjI1Ljc5NjNDMTAuOTYyMiAyMi43NjM0IDguNTY0MjIgMjAuMzA0NyA1LjYwNjE1IDIwLjMwNDdaIiBmaWxsPSIjRkY3NzU5Ii8+CjwvZz4KPGRlZnM+CjxjbGlwUGF0aCBpZD0iY2xpcDBfMzkxNV8yMTk2Ij4KPHJlY3Qgd2lkdGg9IjMxLjIwOTkiIGhlaWdodD0iMzIiIGZpbGw9IndoaXRlIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLjI1KSIvPgo8L2NsaXBQYXRoPgo8L2RlZnM+Cjwvc3ZnPgo=">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="io.camunda:http-json:1" retries="3" />
+        <zeebe:ioMapping>
+          <zeebe:input source="chatJson" target="operationId" />
+          <zeebe:input source="bearer" target="authentication.type" />
+          <zeebe:input source="{{secrets.COHERE_API_KEY}}" target="authentication.token" />
+          <zeebe:input source="https://api.cohere.com" target="baseUrl" />
+          <zeebe:input source="30" target="connectionTimeoutInSeconds" />
+          <zeebe:input source="120" target="readTimeoutInSeconds" />
+          <zeebe:input source="=&#34;/v2/chat&#34;" target="operationPath" />
+          <zeebe:input source="= baseUrl + operationPath" target="url" />
+          <zeebe:input source="POST" target="method" />
+          <zeebe:input source="command-r7b-12-2024" target="chatJsonModel" />
+          <zeebe:input source="=&#34;Analyze this customer complaint and extract the severity and a one-sentence summary: &#34; + customerMessage" target="chatJsonUserPrompt" />
+          <zeebe:input source="={&#34;type&#34;: &#34;object&#34;, &#34;properties&#34;: {&#34;severity&#34;: {&#34;type&#34;: &#34;string&#34;, &#34;enum&#34;: [&#34;low&#34;, &#34;medium&#34;, &#34;high&#34;]}, &#34;summary&#34;: {&#34;type&#34;: &#34;string&#34;}}, &#34;required&#34;: [&#34;severity&#34;, &#34;summary&#34;]}" target="chatJsonSchema" />
+          <zeebe:input source="150" target="chatJsonMaxTokens" />
+          <zeebe:input source="={&#34;model&#34;: (if chatJsonModel = &#34;custom&#34; then chatJsonModelCustom else chatJsonModel), &#34;messages&#34;: [{&#34;role&#34;: &#34;user&#34;, &#34;content&#34;: chatJsonUserPrompt}], &#34;temperature&#34;: 0, &#34;max_tokens&#34;: number(chatJsonMaxTokens), &#34;response_format&#34;: (if chatJsonSchema != null then {&#34;type&#34;: &#34;json_object&#34;, &#34;schema&#34;: chatJsonSchema} else {&#34;type&#34;: &#34;json_object&#34;})}" target="body" />
+        </zeebe:ioMapping>
+        <zeebe:taskHeaders>
+          <zeebe:header key="resultExpression" value="={complaintJson: response.body.message.content[1].text, cohereUsage: response.body.usage.billed_units}" />
+          <zeebe:header key="retryBackoff" value="PT10S" />
+        </zeebe:taskHeaders>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_Complaint</bpmn:incoming>
+      <bpmn:outgoing>Flow_ComplaintToJoin</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_Join" name="">
+      <bpmn:incoming>Flow_AnswerToJoin</bpmn:incoming>
+      <bpmn:incoming>Flow_ComplaintToJoin</bpmn:incoming>
+      <bpmn:incoming>Flow_Praise</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToEnd</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="End_Triage" name="Feedback handled">
+      <bpmn:incoming>Flow_ToEnd</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_ToClassify" sourceRef="Start_Feedback" targetRef="Task_ClassifyFeedback" />
+    <bpmn:sequenceFlow id="Flow_ToSplit" sourceRef="Task_ClassifyFeedback" targetRef="Gateway_FeedbackType" />
+    <bpmn:sequenceFlow id="Flow_Question" name="question" sourceRef="Gateway_FeedbackType" targetRef="Task_RankArticles">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">=cohereLabel = "question"</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_Complaint" name="complaint" sourceRef="Gateway_FeedbackType" targetRef="Task_ExtractSeverity">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">=cohereLabel = "complaint"</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_Praise" name="praise" sourceRef="Gateway_FeedbackType" targetRef="Gateway_Join" />
+    <bpmn:sequenceFlow id="Flow_ToAnswer" sourceRef="Task_RankArticles" targetRef="Task_DraftAnswer" />
+    <bpmn:sequenceFlow id="Flow_AnswerToJoin" sourceRef="Task_DraftAnswer" targetRef="Gateway_Join" />
+    <bpmn:sequenceFlow id="Flow_ComplaintToJoin" sourceRef="Task_ExtractSeverity" targetRef="Gateway_Join" />
+    <bpmn:sequenceFlow id="Flow_ToEnd" sourceRef="Gateway_Join" targetRef="End_Triage" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_CohereTriage">
+    <bpmndi:BPMNPlane id="BPMNPlane_CohereTriage" bpmnElement="CohereFeedbackTriage">
+      <bpmndi:BPMNShape id="Start_Feedback_di" bpmnElement="Start_Feedback">
+        <dc:Bounds x="152" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="125" y="145" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ClassifyFeedback_di" bpmnElement="Task_ClassifyFeedback">
+        <dc:Bounds x="240" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_FeedbackType_di" bpmnElement="Gateway_FeedbackType" isMarkerVisible="true">
+        <dc:Bounds x="395" y="95" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="388" y="65" width="64" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_RankArticles_di" bpmnElement="Task_RankArticles">
+        <dc:Bounds x="510" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_DraftAnswer_di" bpmnElement="Task_DraftAnswer">
+        <dc:Bounds x="670" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ExtractSeverity_di" bpmnElement="Task_ExtractSeverity">
+        <dc:Bounds x="510" y="210" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_Join_di" bpmnElement="Gateway_Join" isMarkerVisible="true">
+        <dc:Bounds x="835" y="95" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_Triage_di" bpmnElement="End_Triage">
+        <dc:Bounds x="942" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="916" y="145" width="89" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_ToClassify_di" bpmnElement="Flow_ToClassify">
+        <di:waypoint x="188" y="120" />
+        <di:waypoint x="240" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ToSplit_di" bpmnElement="Flow_ToSplit">
+        <di:waypoint x="340" y="120" />
+        <di:waypoint x="395" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Question_di" bpmnElement="Flow_Question">
+        <di:waypoint x="445" y="120" />
+        <di:waypoint x="510" y="120" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="455" y="102" width="43" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Complaint_di" bpmnElement="Flow_Complaint">
+        <di:waypoint x="420" y="145" />
+        <di:waypoint x="420" y="250" />
+        <di:waypoint x="510" y="250" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="428" y="233" width="48" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Praise_di" bpmnElement="Flow_Praise">
+        <di:waypoint x="420" y="145" />
+        <di:waypoint x="420" y="350" />
+        <di:waypoint x="860" y="350" />
+        <di:waypoint x="860" y="145" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="625" y="332" width="31" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ToAnswer_di" bpmnElement="Flow_ToAnswer">
+        <di:waypoint x="610" y="120" />
+        <di:waypoint x="670" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_AnswerToJoin_di" bpmnElement="Flow_AnswerToJoin">
+        <di:waypoint x="770" y="120" />
+        <di:waypoint x="835" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ComplaintToJoin_di" bpmnElement="Flow_ComplaintToJoin">
+        <di:waypoint x="610" y="250" />
+        <di:waypoint x="860" y="250" />
+        <di:waypoint x="860" y="145" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ToEnd_di" bpmnElement="Flow_ToEnd">
+        <di:waypoint x="885" y="120" />
+        <di:waypoint x="942" y="120" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

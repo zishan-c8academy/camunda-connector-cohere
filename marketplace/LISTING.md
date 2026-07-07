@@ -29,7 +29,7 @@ marketplace.camunda.com, "Become a Contributor", Submit Connector).
 | --- | --- |
 | Rerank retrieval hits by relevance | Pass vector-store hits and a query to Cohere Rerank and get back relevance-ordered documents, ready to feed an AI agent or a human review step. Positions are 1-based so they index FEEL lists directly. |
 | Get guaranteed JSON answers | Provide a JSON Schema and the structured output operation returns a string that is guaranteed to parse as JSON conforming to it, ideal for driving gateways and downstream automation. |
-| Classify text for routing | Give a list of allowed labels and get back exactly one, generated at temperature 0, so a gateway condition like cohereLabel = "approve" just works. |
+| Classify text for routing | Give a list of allowed labels and get back exactly one, enforced through a structured-output enum at temperature 0, so a gateway condition like cohereLabel = "approve" just works. |
 | Run anywhere with zero hosting | The connector is an element template on Camunda's built-in REST connector, so it works on SaaS and Self-Managed 8.5+ with no Java, no custom runtime, and secrets kept in the cluster. |
 
 ## Community-track requirements checklist

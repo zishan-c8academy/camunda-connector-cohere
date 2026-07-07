@@ -27,35 +27,41 @@ Created by Zishan Ali Khan (Camunda). Community connector, not an official Coher
   newly released models
 - **API key via Camunda secrets** (`{{secrets.COHERE_API_KEY}}`), never stored in the model
 
-## Example process
+## Sample process
 
-[`example/cohere-connector-smoke.bpmn`](example/cohere-connector-smoke.bpmn) chains three
-operations and was verified end to end on a live Camunda 8.9 SaaS cluster:
+[`example/customer-feedback-triage.bpmn`](example/customer-feedback-triage.bpmn) is a
+ready-to-open showcase with the template applied to every task: classify incoming feedback,
+route on the label, answer questions with a rerank-grounded reply (a miniature RAG), and
+turn complaints into structured JSON for a human queue.
 
 ```
-Start --> [Chat: ask Cohere] --> [Classify: label a text] --> [Rerank: rank documents] --> End
+                                       question --> [Find relevant help articles] --> [Draft grounded answer] --\
+Feedback --> [Classify feedback] --> <?> -- complaint --> [Extract severity and summary] ------------------------+--> End
+                                       praise -----------------------------------------------------------------/
 ```
 
-Real variables produced by that instance (completed in 8.5 seconds):
+Both branches are verified on a live Camunda 8.9 SaaS cluster. A real run, verbatim:
+
+- In: *"The export button has said 'loading' since Tuesday. My coffee has gone cold twice
+  waiting for it, and cold coffee is a severity of its own."*
+- `cohereLabel`: `"complaint"`, and `complaintJson`:
 
 ```json
 {
-  "cohereReply": "A KYC analyst verifies customer identities and conducts due diligence to ensure compliance with anti-money laundering regulations.",
-  "cohereUsage": { "input_tokens": 28, "output_tokens": 20 },
-  "cohereLabel": "account_opening",
-  "cohereRanked": [
-    { "position": 1, "score": 0.4306 },
-    { "position": 3, "score": 0.0203 }
-  ],
-  "rankedDocs": [
-    "The MLRO must complete reviews within 2 business days.",
-    "Escalations route to the compliance team channel."
-  ]
+  "severity": "high",
+  "summary": "The export button has been stuck on 'loading' for several days, causing significant delays and frustration, resulting in cold coffee twice."
 }
 ```
 
-`example/run-cluster-smoke.cjs` automates deploy, run, and verify against a SaaS cluster
-(needs `@camunda8/sdk` and Zeebe API client credentials in a `.env`).
+To try it: upload the `.bpmn` to Web Modeler (with the template installed the tasks render
+with the Cohere icon and full template panel), create the `COHERE_API_KEY` secret, deploy,
+and start an instance with a `customerMessage` variable.
+`example/run-triage-sample.cjs` automates deploy-run-verify for both branches.
+
+There is also [`example/cohere-connector-smoke.bpmn`](example/cohere-connector-smoke.bpmn),
+a minimal three-task test rig (chat, classify, rerank in a straight line) with
+`example/run-cluster-smoke.cjs` as its runner. Both runners need `@camunda8/sdk` and Zeebe
+API client credentials in a `.env`.
 
 ## Installation
 
@@ -92,7 +98,7 @@ setup. Details in
 | --- | --- | --- |
 | Chat: ask Cohere | `POST /v2/chat` | [Chat](https://docs.cohere.com/reference/chat) |
 | Chat: structured JSON output | `POST /v2/chat` + `response_format` | [Structured outputs](https://docs.cohere.com/docs/structured-outputs) |
-| Classify: label a text | `POST /v2/chat` (temperature 0) | [Chat](https://docs.cohere.com/reference/chat) |
+| Classify: label a text | `POST /v2/chat` (temperature 0, schema-enforced label enum) | [Structured outputs](https://docs.cohere.com/docs/structured-outputs) |
 | Embeddings: embed texts | `POST /v2/embed` | [Embed](https://docs.cohere.com/reference/embed) |
 | Rerank: rank documents by relevance | `POST /v2/rerank` | [Rerank](https://docs.cohere.com/reference/rerank) |
 | Utility: list available models | `GET /v1/models` | [Models](https://docs.cohere.com/reference/list-models) |
@@ -164,8 +170,9 @@ access.
   arrives as a guaranteed-valid JSON string; parse it downstream (job worker, script task,
   or AI agent step).
 - **Classification runs through chat.** Cohere retired the dedicated `/v1/classify`
-  endpoint in September 2025, so the classify operation uses chat at temperature 0 with a
-  strict label-only instruction.
+  endpoint in September 2025, so the classify operation uses chat at temperature 0 with the
+  label enforced through a structured-output enum: the model must pick from your list and
+  cannot answer the text instead of labeling it.
 - **Numeric fields are plain text.** Temperature, max tokens, and top N are converted with
   `number(...)` inside the body expression; keep them as plain text values.
 - **Trial keys are rate-limited** (about 20 requests/minute, 1,000 calls/month). The
@@ -175,6 +182,9 @@ access.
 
 ## Changelog
 
+- **v3**: classify hardened with a schema-enforced label enum (a plain instruction let
+  small models answer question-shaped texts instead of labeling them); customer feedback
+  triage sample process
 - **v2**: placeholders on all free-text fields, per-operation links to Cohere docs,
   Web Modeler screenshots
 - **v1**: initial release with 6 operations, verified against a live Camunda 8.9 SaaS
