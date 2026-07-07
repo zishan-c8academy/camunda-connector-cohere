@@ -10,6 +10,8 @@ built on Camunda's native REST connector (`io.camunda:http-json:1`). That means:
 - **Works on Camunda SaaS and Self-Managed**, version 8.5 and later.
 - Verified end to end against a live Camunda 8.9 SaaS cluster (see [example](#try-the-example)).
 
+![The Cohere template in Web Modeler](screenshots/cohere-operations.png)
+
 ## Operations
 
 | Operation | Endpoint | Result variables |

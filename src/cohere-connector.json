@@ -2,7 +2,7 @@
   "$schema": "https://unpkg.com/@camunda/zeebe-element-templates-json-schema/resources/schema.json",
   "name": "Cohere",
   "id": "io.github.zishan-c8academy.cohere-connector.v1",
-  "version": 1,
+  "version": 2,
   "description": "Chat, structured JSON output, classification, embeddings, and reranking with Cohere models. Built on the Camunda REST connector: runs on SaaS and Self-Managed with no custom runtime.",
   "documentationRef": "https://github.com/zishan-c8academy/camunda-connector-cohere",
   "category": {
@@ -131,7 +131,7 @@
     {
       "id": "chatModel",
       "label": "Model",
-      "description": "Cohere chat model to use",
+      "description": "Cohere chat model to use. See the <a href=\"https://docs.cohere.com/docs/models\" target=\"_blank\">model overview</a> and the <a href=\"https://docs.cohere.com/reference/chat\" target=\"_blank\">Chat API reference</a>.",
       "group": "input",
       "type": "Dropdown",
       "value": "command-a-03-2025",
@@ -203,7 +203,8 @@
             "equals": "custom"
           }
         ]
-      }
+      },
+      "placeholder": "e.g. command-a-plus-05-2026"
     },
     {
       "id": "chatSystemPrompt",
@@ -242,7 +243,8 @@
       "condition": {
         "property": "operationId",
         "equals": "chat"
-      }
+      },
+      "placeholder": "e.g. Summarize the customer request in two sentences"
     },
     {
       "id": "chatTemperature",
@@ -279,7 +281,7 @@
     {
       "id": "chatJsonModel",
       "label": "Model",
-      "description": "Models with structured-output (json_schema) support",
+      "description": "Models with structured-output support. Learn more about <a href=\"https://docs.cohere.com/docs/structured-outputs\" target=\"_blank\">structured outputs</a>.",
       "group": "input",
       "type": "Dropdown",
       "value": "command-a-03-2025",
@@ -347,7 +349,8 @@
             "equals": "custom"
           }
         ]
-      }
+      },
+      "placeholder": "e.g. command-a-plus-05-2026"
     },
     {
       "id": "chatJsonUserPrompt",
@@ -366,7 +369,8 @@
       "condition": {
         "property": "operationId",
         "equals": "chatJson"
-      }
+      },
+      "placeholder": "e.g. Extract the risk level and the reason from the case notes"
     },
     {
       "id": "chatJsonSchema",
@@ -383,7 +387,8 @@
       "condition": {
         "property": "operationId",
         "equals": "chatJson"
-      }
+      },
+      "placeholder": "={\"type\": \"object\", \"properties\": {\"riskLevel\": {\"type\": \"string\"}}, \"required\": [\"riskLevel\"]}"
     },
     {
       "id": "chatJsonMaxTokens",
@@ -404,7 +409,7 @@
     {
       "id": "classifyModel",
       "label": "Model",
-      "description": "A small model is usually enough for classification",
+      "description": "A small model is usually enough for classification. See the <a href=\"https://docs.cohere.com/docs/models\" target=\"_blank\">model overview</a>.",
       "group": "input",
       "type": "Dropdown",
       "value": "command-r7b-12-2024",
@@ -464,7 +469,8 @@
             "equals": "custom"
           }
         ]
-      }
+      },
+      "placeholder": "e.g. a fine-tuned model id"
     },
     {
       "id": "classifyText",
@@ -483,7 +489,8 @@
       "condition": {
         "property": "operationId",
         "equals": "classify"
-      }
+      },
+      "placeholder": "e.g. = customerMessage"
     },
     {
       "id": "classifyLabels",
@@ -503,12 +510,13 @@
       "condition": {
         "property": "operationId",
         "equals": "classify"
-      }
+      },
+      "placeholder": "=[\"approve\", \"review\", \"reject\"]"
     },
     {
       "id": "embedModel",
       "label": "Model",
-      "description": "Embedding model. Embed v4 produces 1536-dimension vectors.",
+      "description": "Embedding model; Embed v4 produces 1536-dimension vectors. See the <a href=\"https://docs.cohere.com/reference/embed\" target=\"_blank\">Embed API reference</a>.",
       "group": "input",
       "type": "Dropdown",
       "value": "embed-v4.0",
@@ -572,7 +580,8 @@
             "equals": "custom"
           }
         ]
-      }
+      },
+      "placeholder": "e.g. embed-v4.0"
     },
     {
       "id": "embedTexts",
@@ -591,7 +600,8 @@
       "condition": {
         "property": "operationId",
         "equals": "embed"
-      }
+      },
+      "placeholder": "e.g. =[\"first chunk\", \"second chunk\"] or = policyChunks"
     },
     {
       "id": "embedInputType",
@@ -630,7 +640,7 @@
     {
       "id": "rerankModel",
       "label": "Model",
-      "description": "Rerank model to use",
+      "description": "Rerank model to use. See the <a href=\"https://docs.cohere.com/reference/rerank\" target=\"_blank\">Rerank API reference</a> and <a href=\"https://docs.cohere.com/docs/rerank-overview\" target=\"_blank\">rerank overview</a>.",
       "group": "input",
       "type": "Dropdown",
       "value": "rerank-v3.5",
@@ -694,7 +704,8 @@
             "equals": "custom"
           }
         ]
-      }
+      },
+      "placeholder": "e.g. rerank-v4.0-pro"
     },
     {
       "id": "rerankQuery",
@@ -713,7 +724,8 @@
       "condition": {
         "property": "operationId",
         "equals": "rerank"
-      }
+      },
+      "placeholder": "e.g. = userQuestion"
     },
     {
       "id": "rerankDocuments",
@@ -732,7 +744,8 @@
       "condition": {
         "property": "operationId",
         "equals": "rerank"
-      }
+      },
+      "placeholder": "e.g. = searchHits"
     },
     {
       "id": "rerankTopN",
