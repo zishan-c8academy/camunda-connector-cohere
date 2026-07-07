@@ -1,0 +1,1206 @@
+{
+  "$schema": "https://unpkg.com/@camunda/zeebe-element-templates-json-schema/resources/schema.json",
+  "name": "Cohere",
+  "id": "io.github.zishan-c8academy.cohere-connector.v1",
+  "version": 1,
+  "description": "Chat, structured JSON output, classification, embeddings, and reranking with Cohere models. Built on the Camunda REST connector: runs on SaaS and Self-Managed with no custom runtime.",
+  "documentationRef": "https://github.com/zishan-c8academy/camunda-connector-cohere",
+  "category": {
+    "id": "connectors",
+    "name": "Connectors"
+  },
+  "appliesTo": [
+    "bpmn:Task"
+  ],
+  "elementType": {
+    "value": "bpmn:ServiceTask"
+  },
+  "engines": {
+    "camunda": "^8.5"
+  },
+  "icon": {
+    "contents": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGcgY2xpcC1wYXRoPSJ1cmwoI2NsaXAwXzM5MTVfMjE5NikiPgo8cGF0aCBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGNsaXAtcnVsZT0iZXZlbm9kZCIgZD0iTTEwLjM2MTUgMTkuMDUzQzExLjIwMTYgMTkuMDUzIDEyLjg3MjYgMTkuMDA1NyAxNS4xODIzIDE4LjAzMDdDMTcuODczOSAxNi44OTQ1IDIzLjIyOSAxNC44MzE4IDI3LjA5MTkgMTIuNzEzMkMyOS43OTM2IDExLjIzMTQgMzAuOTc3OSA5LjI3MTU5IDMwLjk3NzkgNi42MzIzNkMzMC45NzggMi45Njk0MyAyOC4wODE5IDAgMjQuNTA5NCAwSDkuNTQxMjdDNC40MDk4MyAwIDAuMjUgNC4yNjUxNCAwLjI1IDkuNTI2NDlDMC4yNSAxNC43ODc4IDQuMTQ0ODMgMTkuMDUzIDEwLjM2MTUgMTkuMDUzWiIgZmlsbD0iIzM1NTE0NiIvPgo8cGF0aCBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGNsaXAtcnVsZT0iZXZlbm9kZCIgZD0iTTEyLjg5MjggMjUuNjE2MUMxMi44OTI4IDIzLjAzNzEgMTQuNDA3MSAyMC43MTE4IDE2LjczMDMgMTkuNzIzMUwyMS40NDQxIDE3LjcxNzNDMjYuMjEyMSAxNS42ODg0IDMxLjQ2IDE5LjI4MSAzMS40NiAyNC41NzQxQzMxLjQ2IDI4LjY3NDkgMjguMjE3MiAzMS45OTkgMjQuMjE3NiAzMS45OTc5TDE5LjExNCAzMS45OTY1QzE1LjY3NzggMzEuOTk1NiAxMi44OTI4IDI5LjEzOTIgMTIuODkyOCAyNS42MTYxWiIgZmlsbD0iI0QxOEVFMiIvPgo8cGF0aCBkPSJNNS42MDYxNSAyMC4zMDQ3SDUuNjA2MDZDMi42NDc5OSAyMC4zMDQ3IDAuMjUgMjIuNzYzNCAwLjI1IDI1Ljc5NjNWMjYuNTA3NkMwLjI1IDI5LjU0MDYgMi42NDc5OSAzMS45OTkzIDUuNjA2MDYgMzEuOTk5M0g1LjYwNjE1QzguNTY0MjIgMzEuOTk5MyAxMC45NjIyIDI5LjU0MDYgMTAuOTYyMiAyNi41MDc2VjI1Ljc5NjNDMTAuOTYyMiAyMi43NjM0IDguNTY0MjIgMjAuMzA0NyA1LjYwNjE1IDIwLjMwNDdaIiBmaWxsPSIjRkY3NzU5Ii8+CjwvZz4KPGRlZnM+CjxjbGlwUGF0aCBpZD0iY2xpcDBfMzkxNV8yMTk2Ij4KPHJlY3Qgd2lkdGg9IjMxLjIwOTkiIGhlaWdodD0iMzIiIGZpbGw9IndoaXRlIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLjI1KSIvPgo8L2NsaXBQYXRoPgo8L2RlZnM+Cjwvc3ZnPgo="
+  },
+  "groups": [
+    {
+      "id": "operation",
+      "label": "Operation"
+    },
+    {
+      "id": "authentication",
+      "label": "Authentication"
+    },
+    {
+      "id": "input",
+      "label": "Input"
+    },
+    {
+      "id": "output",
+      "label": "Output mapping"
+    },
+    {
+      "id": "error",
+      "label": "Error handling"
+    },
+    {
+      "id": "connection",
+      "label": "Connection (advanced)"
+    },
+    {
+      "id": "retries",
+      "label": "Retries"
+    },
+    {
+      "id": "endpoint",
+      "label": "Endpoint (technical)"
+    }
+  ],
+  "properties": [
+    {
+      "type": "Hidden",
+      "value": "io.camunda:http-json:1",
+      "binding": {
+        "type": "zeebe:taskDefinition",
+        "property": "type"
+      }
+    },
+    {
+      "id": "operationId",
+      "label": "Operation",
+      "description": "Classification runs through chat with structured output, because Cohere retired the dedicated Classify endpoint in September 2025.",
+      "group": "operation",
+      "type": "Dropdown",
+      "value": "chat",
+      "choices": [
+        {
+          "name": "Chat: ask Cohere",
+          "value": "chat"
+        },
+        {
+          "name": "Chat: structured JSON output",
+          "value": "chatJson"
+        },
+        {
+          "name": "Classify: label a text",
+          "value": "classify"
+        },
+        {
+          "name": "Embeddings: embed texts",
+          "value": "embed"
+        },
+        {
+          "name": "Rerank: rank documents by relevance",
+          "value": "rerank"
+        },
+        {
+          "name": "Utility: list available models",
+          "value": "models"
+        }
+      ],
+      "binding": {
+        "type": "zeebe:input",
+        "name": "operationId"
+      }
+    },
+    {
+      "id": "authenticationType",
+      "type": "Hidden",
+      "value": "bearer",
+      "group": "authentication",
+      "binding": {
+        "type": "zeebe:input",
+        "name": "authentication.type"
+      }
+    },
+    {
+      "id": "authenticationToken",
+      "label": "Cohere API key",
+      "description": "Use a Camunda secret: <code>{{secrets.COHERE_API_KEY}}</code>. Create a key at <a href=\"https://dashboard.cohere.com/api-keys\" target=\"_blank\">dashboard.cohere.com</a>; manage secrets as described in <a href=\"https://docs.camunda.io/docs/components/console/manage-clusters/manage-secrets/\" target=\"_blank\">the Camunda documentation</a>.",
+      "value": "{{secrets.COHERE_API_KEY}}",
+      "constraints": {
+        "notEmpty": true
+      },
+      "feel": "optional",
+      "group": "authentication",
+      "binding": {
+        "type": "zeebe:input",
+        "name": "authentication.token"
+      },
+      "type": "String"
+    },
+    {
+      "id": "chatModel",
+      "label": "Model",
+      "description": "Cohere chat model to use",
+      "group": "input",
+      "type": "Dropdown",
+      "value": "command-a-03-2025",
+      "choices": [
+        {
+          "name": "Command A+ (vision + reasoning)",
+          "value": "command-a-plus-05-2026"
+        },
+        {
+          "name": "Command A (flagship)",
+          "value": "command-a-03-2025"
+        },
+        {
+          "name": "Command A Reasoning",
+          "value": "command-a-reasoning-08-2025"
+        },
+        {
+          "name": "Command R+",
+          "value": "command-r-plus-08-2024"
+        },
+        {
+          "name": "Command R",
+          "value": "command-r-08-2024"
+        },
+        {
+          "name": "Command R7B (fast, low cost)",
+          "value": "command-r7b-12-2024"
+        },
+        {
+          "name": "Aya Expanse 32B (multilingual)",
+          "value": "c4ai-aya-expanse-32b"
+        },
+        {
+          "name": "Custom model (enter below)",
+          "value": "custom"
+        }
+      ],
+      "binding": {
+        "type": "zeebe:input",
+        "name": "chatModel"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "chat"
+      }
+    },
+    {
+      "id": "chatModelCustom",
+      "label": "Custom model id",
+      "description": "Exact model id as listed by the <em>list available models</em> operation, e.g. a fine-tuned model",
+      "group": "input",
+      "type": "String",
+      "feel": "optional",
+      "constraints": {
+        "notEmpty": true
+      },
+      "binding": {
+        "type": "zeebe:input",
+        "name": "chatModelCustom"
+      },
+      "condition": {
+        "allMatch": [
+          {
+            "property": "operationId",
+            "equals": "chat"
+          },
+          {
+            "property": "chatModel",
+            "equals": "custom"
+          }
+        ]
+      }
+    },
+    {
+      "id": "chatSystemPrompt",
+      "label": "System prompt",
+      "description": "Defines the behavior and persona of the model",
+      "group": "input",
+      "type": "Text",
+      "feel": "optional",
+      "value": "You are a helpful assistant working inside a business process. Answer concisely.",
+      "constraints": {
+        "notEmpty": true
+      },
+      "binding": {
+        "type": "zeebe:input",
+        "name": "chatSystemPrompt"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "chat"
+      }
+    },
+    {
+      "id": "chatUserPrompt",
+      "label": "User prompt",
+      "description": "The question or instruction. Prefix with = to use process variables, e.g. <code>= \"Summarize this claim: \" + claimDescription</code>",
+      "group": "input",
+      "type": "Text",
+      "feel": "optional",
+      "constraints": {
+        "notEmpty": true
+      },
+      "binding": {
+        "type": "zeebe:input",
+        "name": "chatUserPrompt"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "chat"
+      }
+    },
+    {
+      "id": "chatTemperature",
+      "label": "Temperature",
+      "description": "0 = deterministic, 1 = creative. Keep as plain text.",
+      "group": "input",
+      "type": "String",
+      "value": "0.3",
+      "binding": {
+        "type": "zeebe:input",
+        "name": "chatTemperature"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "chat"
+      }
+    },
+    {
+      "id": "chatMaxTokens",
+      "label": "Max tokens",
+      "description": "Upper bound for the generated answer. Keep as plain text.",
+      "group": "input",
+      "type": "String",
+      "value": "1024",
+      "binding": {
+        "type": "zeebe:input",
+        "name": "chatMaxTokens"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "chat"
+      }
+    },
+    {
+      "id": "chatJsonModel",
+      "label": "Model",
+      "description": "Models with structured-output (json_schema) support",
+      "group": "input",
+      "type": "Dropdown",
+      "value": "command-a-03-2025",
+      "choices": [
+        {
+          "name": "Command A+ (vision + reasoning)",
+          "value": "command-a-plus-05-2026"
+        },
+        {
+          "name": "Command A (flagship)",
+          "value": "command-a-03-2025"
+        },
+        {
+          "name": "Command A Reasoning",
+          "value": "command-a-reasoning-08-2025"
+        },
+        {
+          "name": "Command R+",
+          "value": "command-r-plus-08-2024"
+        },
+        {
+          "name": "Command R",
+          "value": "command-r-08-2024"
+        },
+        {
+          "name": "Command R7B (fast, low cost)",
+          "value": "command-r7b-12-2024"
+        },
+        {
+          "name": "Custom model (enter below)",
+          "value": "custom"
+        }
+      ],
+      "binding": {
+        "type": "zeebe:input",
+        "name": "chatJsonModel"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "chatJson"
+      }
+    },
+    {
+      "id": "chatJsonModelCustom",
+      "label": "Custom model id",
+      "description": "Exact model id as listed by the <em>list available models</em> operation",
+      "group": "input",
+      "type": "String",
+      "feel": "optional",
+      "constraints": {
+        "notEmpty": true
+      },
+      "binding": {
+        "type": "zeebe:input",
+        "name": "chatJsonModelCustom"
+      },
+      "condition": {
+        "allMatch": [
+          {
+            "property": "operationId",
+            "equals": "chatJson"
+          },
+          {
+            "property": "chatJsonModel",
+            "equals": "custom"
+          }
+        ]
+      }
+    },
+    {
+      "id": "chatJsonUserPrompt",
+      "label": "User prompt",
+      "description": "Ask for the data you need. If you leave the schema empty, mention the word JSON explicitly, e.g. <em>Return a JSON object with ...</em>",
+      "group": "input",
+      "type": "Text",
+      "feel": "optional",
+      "constraints": {
+        "notEmpty": true
+      },
+      "binding": {
+        "type": "zeebe:input",
+        "name": "chatJsonUserPrompt"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "chatJson"
+      }
+    },
+    {
+      "id": "chatJsonSchema",
+      "label": "JSON Schema (optional)",
+      "description": "FEEL context with a JSON Schema the answer must conform to, e.g. <code>={\"type\": \"object\", \"properties\": {\"riskLevel\": {\"type\": \"string\"}}, \"required\": [\"riskLevel\"]}</code>. Leave empty for free-form JSON.",
+      "group": "input",
+      "type": "Text",
+      "feel": "required",
+      "optional": true,
+      "binding": {
+        "type": "zeebe:input",
+        "name": "chatJsonSchema"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "chatJson"
+      }
+    },
+    {
+      "id": "chatJsonMaxTokens",
+      "label": "Max tokens",
+      "description": "Upper bound for the generated answer. Keep as plain text.",
+      "group": "input",
+      "type": "String",
+      "value": "1024",
+      "binding": {
+        "type": "zeebe:input",
+        "name": "chatJsonMaxTokens"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "chatJson"
+      }
+    },
+    {
+      "id": "classifyModel",
+      "label": "Model",
+      "description": "A small model is usually enough for classification",
+      "group": "input",
+      "type": "Dropdown",
+      "value": "command-r7b-12-2024",
+      "choices": [
+        {
+          "name": "Command R7B (fast, low cost)",
+          "value": "command-r7b-12-2024"
+        },
+        {
+          "name": "Command R",
+          "value": "command-r-08-2024"
+        },
+        {
+          "name": "Command A (flagship)",
+          "value": "command-a-03-2025"
+        },
+        {
+          "name": "Aya Expanse 32B (multilingual)",
+          "value": "c4ai-aya-expanse-32b"
+        },
+        {
+          "name": "Custom model (enter below)",
+          "value": "custom"
+        }
+      ],
+      "binding": {
+        "type": "zeebe:input",
+        "name": "classifyModel"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "classify"
+      }
+    },
+    {
+      "id": "classifyModelCustom",
+      "label": "Custom model id",
+      "description": "Exact model id as listed by the <em>list available models</em> operation",
+      "group": "input",
+      "type": "String",
+      "feel": "optional",
+      "constraints": {
+        "notEmpty": true
+      },
+      "binding": {
+        "type": "zeebe:input",
+        "name": "classifyModelCustom"
+      },
+      "condition": {
+        "allMatch": [
+          {
+            "property": "operationId",
+            "equals": "classify"
+          },
+          {
+            "property": "classifyModel",
+            "equals": "custom"
+          }
+        ]
+      }
+    },
+    {
+      "id": "classifyText",
+      "label": "Text to classify",
+      "description": "Prefix with = to use a process variable, e.g. <code>= customerMessage</code>",
+      "group": "input",
+      "type": "Text",
+      "feel": "optional",
+      "constraints": {
+        "notEmpty": true
+      },
+      "binding": {
+        "type": "zeebe:input",
+        "name": "classifyText"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "classify"
+      }
+    },
+    {
+      "id": "classifyLabels",
+      "label": "Allowed labels",
+      "description": "FEEL list of allowed labels. The model must answer with exactly one of them.",
+      "group": "input",
+      "type": "String",
+      "feel": "required",
+      "value": "=[\"approve\", \"review\", \"reject\"]",
+      "constraints": {
+        "notEmpty": true
+      },
+      "binding": {
+        "type": "zeebe:input",
+        "name": "classifyLabels"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "classify"
+      }
+    },
+    {
+      "id": "embedModel",
+      "label": "Model",
+      "description": "Embedding model. Embed v4 produces 1536-dimension vectors.",
+      "group": "input",
+      "type": "Dropdown",
+      "value": "embed-v4.0",
+      "choices": [
+        {
+          "name": "Embed v4 (latest, recommended)",
+          "value": "embed-v4.0"
+        },
+        {
+          "name": "Embed English v3",
+          "value": "embed-english-v3.0"
+        },
+        {
+          "name": "Embed Multilingual v3",
+          "value": "embed-multilingual-v3.0"
+        },
+        {
+          "name": "Embed English Light v3",
+          "value": "embed-english-light-v3.0"
+        },
+        {
+          "name": "Embed Multilingual Light v3",
+          "value": "embed-multilingual-light-v3.0"
+        },
+        {
+          "name": "Custom model (enter below)",
+          "value": "custom"
+        }
+      ],
+      "binding": {
+        "type": "zeebe:input",
+        "name": "embedModel"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "embed"
+      }
+    },
+    {
+      "id": "embedModelCustom",
+      "label": "Custom model id",
+      "description": "Exact model id as listed by the <em>list available models</em> operation",
+      "group": "input",
+      "type": "String",
+      "feel": "optional",
+      "constraints": {
+        "notEmpty": true
+      },
+      "binding": {
+        "type": "zeebe:input",
+        "name": "embedModelCustom"
+      },
+      "condition": {
+        "allMatch": [
+          {
+            "property": "operationId",
+            "equals": "embed"
+          },
+          {
+            "property": "embedModel",
+            "equals": "custom"
+          }
+        ]
+      }
+    },
+    {
+      "id": "embedTexts",
+      "label": "Texts",
+      "description": "FEEL list of strings to embed, e.g. <code>=[\"first chunk\", \"second chunk\"]</code> or <code>=policyChunks</code>",
+      "group": "input",
+      "type": "String",
+      "feel": "required",
+      "constraints": {
+        "notEmpty": true
+      },
+      "binding": {
+        "type": "zeebe:input",
+        "name": "embedTexts"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "embed"
+      }
+    },
+    {
+      "id": "embedInputType",
+      "label": "Input type",
+      "description": "Use <em>search_document</em> when indexing, <em>search_query</em> when querying",
+      "group": "input",
+      "type": "Dropdown",
+      "value": "search_document",
+      "choices": [
+        {
+          "name": "Search document (indexing)",
+          "value": "search_document"
+        },
+        {
+          "name": "Search query (querying)",
+          "value": "search_query"
+        },
+        {
+          "name": "Classification",
+          "value": "classification"
+        },
+        {
+          "name": "Clustering",
+          "value": "clustering"
+        }
+      ],
+      "binding": {
+        "type": "zeebe:input",
+        "name": "embedInputType"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "embed"
+      }
+    },
+    {
+      "id": "rerankModel",
+      "label": "Model",
+      "description": "Rerank model to use",
+      "group": "input",
+      "type": "Dropdown",
+      "value": "rerank-v3.5",
+      "choices": [
+        {
+          "name": "Rerank v4 Pro (highest quality)",
+          "value": "rerank-v4.0-pro"
+        },
+        {
+          "name": "Rerank v4 Fast",
+          "value": "rerank-v4.0-fast"
+        },
+        {
+          "name": "Rerank v3.5",
+          "value": "rerank-v3.5"
+        },
+        {
+          "name": "Rerank English v3",
+          "value": "rerank-english-v3.0"
+        },
+        {
+          "name": "Rerank Multilingual v3",
+          "value": "rerank-multilingual-v3.0"
+        },
+        {
+          "name": "Custom model (enter below)",
+          "value": "custom"
+        }
+      ],
+      "binding": {
+        "type": "zeebe:input",
+        "name": "rerankModel"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "rerank"
+      }
+    },
+    {
+      "id": "rerankModelCustom",
+      "label": "Custom model id",
+      "description": "Exact model id as listed by the <em>list available models</em> operation",
+      "group": "input",
+      "type": "String",
+      "feel": "optional",
+      "constraints": {
+        "notEmpty": true
+      },
+      "binding": {
+        "type": "zeebe:input",
+        "name": "rerankModelCustom"
+      },
+      "condition": {
+        "allMatch": [
+          {
+            "property": "operationId",
+            "equals": "rerank"
+          },
+          {
+            "property": "rerankModel",
+            "equals": "custom"
+          }
+        ]
+      }
+    },
+    {
+      "id": "rerankQuery",
+      "label": "Query",
+      "description": "What the documents should be ranked against, e.g. <code>= userQuestion</code>",
+      "group": "input",
+      "type": "Text",
+      "feel": "optional",
+      "constraints": {
+        "notEmpty": true
+      },
+      "binding": {
+        "type": "zeebe:input",
+        "name": "rerankQuery"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "rerank"
+      }
+    },
+    {
+      "id": "rerankDocuments",
+      "label": "Documents",
+      "description": "FEEL list of strings to rank, e.g. <code>= searchHits</code>. Typical source: hits from a vector store retrieve.",
+      "group": "input",
+      "type": "String",
+      "feel": "required",
+      "constraints": {
+        "notEmpty": true
+      },
+      "binding": {
+        "type": "zeebe:input",
+        "name": "rerankDocuments"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "rerank"
+      }
+    },
+    {
+      "id": "rerankTopN",
+      "label": "Top N",
+      "description": "How many of the highest-ranked documents to return. Keep as plain text.",
+      "group": "input",
+      "type": "String",
+      "value": "3",
+      "binding": {
+        "type": "zeebe:input",
+        "name": "rerankTopN"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "rerank"
+      }
+    },
+    {
+      "id": "resultExpressionChat",
+      "label": "Result expression",
+      "description": "Maps the answer to <code>cohereReply</code> plus finish reason and billed token usage. Adjust as needed.",
+      "group": "output",
+      "type": "Text",
+      "feel": "required",
+      "value": "={cohereReply: response.body.message.content[1].text, cohereFinishReason: response.body.finish_reason, cohereUsage: response.body.usage.billed_units}",
+      "binding": {
+        "type": "zeebe:taskHeader",
+        "key": "resultExpression"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "chat"
+      }
+    },
+    {
+      "id": "resultExpressionChatJson",
+      "label": "Result expression",
+      "description": "<code>cohereJson</code> is a string that is guaranteed to be valid JSON (schema-conformant if you set a schema). Parse it downstream, e.g. in a job worker or an AI Agent.",
+      "group": "output",
+      "type": "Text",
+      "feel": "required",
+      "value": "={cohereJson: response.body.message.content[1].text, cohereUsage: response.body.usage.billed_units}",
+      "binding": {
+        "type": "zeebe:taskHeader",
+        "key": "resultExpression"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "chatJson"
+      }
+    },
+    {
+      "id": "resultExpressionClassify",
+      "label": "Result expression",
+      "description": "Maps the chosen label to <code>cohereLabel</code>, ready for a gateway condition like <code>=cohereLabel = \"approve\"</code>",
+      "group": "output",
+      "type": "Text",
+      "feel": "required",
+      "value": "={cohereLabel: trim(response.body.message.content[1].text)}",
+      "binding": {
+        "type": "zeebe:taskHeader",
+        "key": "resultExpression"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "classify"
+      }
+    },
+    {
+      "id": "resultExpressionEmbed",
+      "label": "Result expression",
+      "description": "<code>cohereEmbeddings</code> holds one float vector per input text, in input order",
+      "group": "output",
+      "type": "Text",
+      "feel": "required",
+      "value": "={cohereEmbeddings: response.body.embeddings.float, cohereEmbedBilledTokens: response.body.meta.billed_units.input_tokens}",
+      "binding": {
+        "type": "zeebe:taskHeader",
+        "key": "resultExpression"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "embed"
+      }
+    },
+    {
+      "id": "resultExpressionRerank",
+      "label": "Result expression",
+      "description": "<code>position</code> is 1-based so it indexes FEEL lists directly. Get the ranked documents in an output mapping: <code>=for r in cohereRanked return rerankDocuments[r.position]</code>",
+      "group": "output",
+      "type": "Text",
+      "feel": "required",
+      "value": "={cohereRanked: for r in response.body.results return {position: r.index + 1, score: r.relevance_score}}",
+      "binding": {
+        "type": "zeebe:taskHeader",
+        "key": "resultExpression"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "rerank"
+      }
+    },
+    {
+      "id": "resultExpressionModels",
+      "label": "Result expression",
+      "description": "Maps the available models with their supported endpoints to <code>cohereModels</code>",
+      "group": "output",
+      "type": "Text",
+      "feel": "required",
+      "value": "={cohereModels: for m in response.body.models return {name: m.name, endpoints: m.endpoints}}",
+      "binding": {
+        "type": "zeebe:taskHeader",
+        "key": "resultExpression"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "models"
+      }
+    },
+    {
+      "id": "resultVariable",
+      "label": "Result variable",
+      "description": "Name of a single variable to store the full HTTP response in (rarely needed next to the result expression)",
+      "group": "output",
+      "type": "String",
+      "optional": true,
+      "binding": {
+        "type": "zeebe:taskHeader",
+        "key": "resultVariable"
+      }
+    },
+    {
+      "id": "errorExpression",
+      "label": "Error expression",
+      "description": "Map HTTP errors to BPMN errors. Keep it conditional so it stays silent on success, e.g. <code>=if error != null and error.code = \"429\" then bpmnError(\"COHERE_RATE_LIMIT\", \"Cohere rate limit hit\") else null</code>",
+      "group": "error",
+      "type": "Text",
+      "feel": "required",
+      "optional": true,
+      "binding": {
+        "type": "zeebe:taskHeader",
+        "key": "errorExpression"
+      }
+    },
+    {
+      "id": "baseUrl",
+      "label": "Base URL",
+      "description": "Change only when routing through a gateway or proxy",
+      "group": "connection",
+      "type": "String",
+      "value": "https://api.cohere.com",
+      "constraints": {
+        "notEmpty": true
+      },
+      "feel": "optional",
+      "binding": {
+        "type": "zeebe:input",
+        "name": "baseUrl"
+      }
+    },
+    {
+      "id": "connectionTimeout",
+      "label": "Connection timeout (s)",
+      "group": "connection",
+      "type": "String",
+      "value": "30",
+      "binding": {
+        "type": "zeebe:input",
+        "name": "connectionTimeoutInSeconds"
+      }
+    },
+    {
+      "id": "readTimeout",
+      "label": "Read timeout (s)",
+      "description": "Chat generations with large max tokens can take a while",
+      "group": "connection",
+      "type": "String",
+      "value": "120",
+      "binding": {
+        "type": "zeebe:input",
+        "name": "readTimeoutInSeconds"
+      }
+    },
+    {
+      "id": "retryCount",
+      "label": "Retries",
+      "description": "Number of retries on failure",
+      "group": "retries",
+      "type": "String",
+      "value": "3",
+      "binding": {
+        "type": "zeebe:taskDefinition",
+        "property": "retries"
+      }
+    },
+    {
+      "id": "retryBackoff",
+      "label": "Retry backoff",
+      "description": "ISO-8601 duration between retries. Trial keys are limited to 20 requests/min, so PT10S is a safe default.",
+      "group": "retries",
+      "type": "String",
+      "value": "PT10S",
+      "binding": {
+        "type": "zeebe:taskHeader",
+        "key": "retryBackoff"
+      }
+    },
+    {
+      "id": "url",
+      "type": "Hidden",
+      "group": "endpoint",
+      "value": "= baseUrl + operationPath",
+      "binding": {
+        "type": "zeebe:input",
+        "name": "url"
+      }
+    },
+    {
+      "id": "chatPath",
+      "type": "Hidden",
+      "group": "endpoint",
+      "value": "=\"/v2/chat\"",
+      "binding": {
+        "type": "zeebe:input",
+        "name": "operationPath"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "chat"
+      }
+    },
+    {
+      "id": "chatMethod",
+      "type": "Hidden",
+      "group": "endpoint",
+      "value": "POST",
+      "binding": {
+        "type": "zeebe:input",
+        "name": "method"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "chat"
+      }
+    },
+    {
+      "id": "chatBody",
+      "type": "Hidden",
+      "group": "endpoint",
+      "value": "={\"model\": (if chatModel = \"custom\" then chatModelCustom else chatModel), \"messages\": [{\"role\": \"system\", \"content\": chatSystemPrompt}, {\"role\": \"user\", \"content\": chatUserPrompt}], \"temperature\": number(chatTemperature), \"max_tokens\": number(chatMaxTokens)}",
+      "binding": {
+        "type": "zeebe:input",
+        "name": "body"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "chat"
+      }
+    },
+    {
+      "id": "chatJsonPath",
+      "type": "Hidden",
+      "group": "endpoint",
+      "value": "=\"/v2/chat\"",
+      "binding": {
+        "type": "zeebe:input",
+        "name": "operationPath"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "chatJson"
+      }
+    },
+    {
+      "id": "chatJsonMethod",
+      "type": "Hidden",
+      "group": "endpoint",
+      "value": "POST",
+      "binding": {
+        "type": "zeebe:input",
+        "name": "method"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "chatJson"
+      }
+    },
+    {
+      "id": "chatJsonBody",
+      "type": "Hidden",
+      "group": "endpoint",
+      "value": "={\"model\": (if chatJsonModel = \"custom\" then chatJsonModelCustom else chatJsonModel), \"messages\": [{\"role\": \"user\", \"content\": chatJsonUserPrompt}], \"temperature\": 0, \"max_tokens\": number(chatJsonMaxTokens), \"response_format\": (if chatJsonSchema != null then {\"type\": \"json_object\", \"schema\": chatJsonSchema} else {\"type\": \"json_object\"})}",
+      "binding": {
+        "type": "zeebe:input",
+        "name": "body"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "chatJson"
+      }
+    },
+    {
+      "id": "classifyPath",
+      "type": "Hidden",
+      "group": "endpoint",
+      "value": "=\"/v2/chat\"",
+      "binding": {
+        "type": "zeebe:input",
+        "name": "operationPath"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "classify"
+      }
+    },
+    {
+      "id": "classifyMethod",
+      "type": "Hidden",
+      "group": "endpoint",
+      "value": "POST",
+      "binding": {
+        "type": "zeebe:input",
+        "name": "method"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "classify"
+      }
+    },
+    {
+      "id": "classifyBody",
+      "type": "Hidden",
+      "group": "endpoint",
+      "value": "={\"model\": (if classifyModel = \"custom\" then classifyModelCustom else classifyModel), \"messages\": [{\"role\": \"system\", \"content\": \"You are a strict text classifier. Classify the user message into exactly one of these labels: \" + string join(classifyLabels, \", \") + \". Respond with exactly one label from the list and nothing else.\"}, {\"role\": \"user\", \"content\": classifyText}], \"temperature\": 0, \"max_tokens\": 20}",
+      "binding": {
+        "type": "zeebe:input",
+        "name": "body"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "classify"
+      }
+    },
+    {
+      "id": "embedPath",
+      "type": "Hidden",
+      "group": "endpoint",
+      "value": "=\"/v2/embed\"",
+      "binding": {
+        "type": "zeebe:input",
+        "name": "operationPath"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "embed"
+      }
+    },
+    {
+      "id": "embedMethod",
+      "type": "Hidden",
+      "group": "endpoint",
+      "value": "POST",
+      "binding": {
+        "type": "zeebe:input",
+        "name": "method"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "embed"
+      }
+    },
+    {
+      "id": "embedBody",
+      "type": "Hidden",
+      "group": "endpoint",
+      "value": "={\"model\": (if embedModel = \"custom\" then embedModelCustom else embedModel), \"texts\": embedTexts, \"input_type\": embedInputType, \"embedding_types\": [\"float\"]}",
+      "binding": {
+        "type": "zeebe:input",
+        "name": "body"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "embed"
+      }
+    },
+    {
+      "id": "rerankPath",
+      "type": "Hidden",
+      "group": "endpoint",
+      "value": "=\"/v2/rerank\"",
+      "binding": {
+        "type": "zeebe:input",
+        "name": "operationPath"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "rerank"
+      }
+    },
+    {
+      "id": "rerankMethod",
+      "type": "Hidden",
+      "group": "endpoint",
+      "value": "POST",
+      "binding": {
+        "type": "zeebe:input",
+        "name": "method"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "rerank"
+      }
+    },
+    {
+      "id": "rerankBody",
+      "type": "Hidden",
+      "group": "endpoint",
+      "value": "={\"model\": (if rerankModel = \"custom\" then rerankModelCustom else rerankModel), \"query\": rerankQuery, \"documents\": rerankDocuments, \"top_n\": number(rerankTopN)}",
+      "binding": {
+        "type": "zeebe:input",
+        "name": "body"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "rerank"
+      }
+    },
+    {
+      "id": "modelsPath",
+      "type": "Hidden",
+      "group": "endpoint",
+      "value": "=\"/v1/models\"",
+      "binding": {
+        "type": "zeebe:input",
+        "name": "operationPath"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "models"
+      }
+    },
+    {
+      "id": "modelsMethod",
+      "type": "Hidden",
+      "group": "endpoint",
+      "value": "GET",
+      "binding": {
+        "type": "zeebe:input",
+        "name": "method"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "models"
+      }
+    },
+    {
+      "id": "modelsQuery",
+      "type": "Hidden",
+      "group": "endpoint",
+      "value": "={\"page_size\": 100}",
+      "binding": {
+        "type": "zeebe:input",
+        "name": "queryParameters"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "models"
+      }
+    }
+  ]
+}

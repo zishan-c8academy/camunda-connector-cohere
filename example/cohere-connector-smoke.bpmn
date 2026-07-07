@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_CohereSmoke" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.35.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.9.0">
+  <bpmn:process id="CohereConnectorSmoke" name="Cohere Connector Smoke Test" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_Smoke" name="Start">
+      <bpmn:outgoing>Flow_ToChat</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="Task_CohereChat" name="Chat: ask Cohere">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="io.camunda:http-json:1" retries="3" />
+        <zeebe:ioMapping>
+          <zeebe:input source="chat" target="operationId" />
+          <zeebe:input source="bearer" target="authentication.type" />
+          <zeebe:input source="{{secrets.COHERE_API_KEY}}" target="authentication.token" />
+          <zeebe:input source="https://api.cohere.com" target="baseUrl" />
+          <zeebe:input source="30" target="connectionTimeoutInSeconds" />
+          <zeebe:input source="120" target="readTimeoutInSeconds" />
+          <zeebe:input source="=&#34;/v2/chat&#34;" target="operationPath" />
+          <zeebe:input source="= baseUrl + operationPath" target="url" />
+          <zeebe:input source="POST" target="method" />
+          <zeebe:input source="command-r7b-12-2024" target="chatModel" />
+          <zeebe:input source="You are a helpful assistant working inside a business process. Answer concisely." target="chatSystemPrompt" />
+          <zeebe:input source="In one short sentence, what does a KYC analyst do?" target="chatUserPrompt" />
+          <zeebe:input source="0.3" target="chatTemperature" />
+          <zeebe:input source="60" target="chatMaxTokens" />
+          <zeebe:input source="={&#34;model&#34;: (if chatModel = &#34;custom&#34; then chatModelCustom else chatModel), &#34;messages&#34;: [{&#34;role&#34;: &#34;system&#34;, &#34;content&#34;: chatSystemPrompt}, {&#34;role&#34;: &#34;user&#34;, &#34;content&#34;: chatUserPrompt}], &#34;temperature&#34;: number(chatTemperature), &#34;max_tokens&#34;: number(chatMaxTokens)}" target="body" />
+        </zeebe:ioMapping>
+        <zeebe:taskHeaders>
+          <zeebe:header key="resultExpression" value="={cohereReply: response.body.message.content[1].text, cohereFinishReason: response.body.finish_reason, cohereUsage: response.body.usage.billed_units}" />
+          <zeebe:header key="retryBackoff" value="PT10S" />
+        </zeebe:taskHeaders>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_ToChat</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToClassify</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_CohereClassify" name="Classify: label a text">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="io.camunda:http-json:1" retries="3" />
+        <zeebe:ioMapping>
+          <zeebe:input source="classify" target="operationId" />
+          <zeebe:input source="bearer" target="authentication.type" />
+          <zeebe:input source="{{secrets.COHERE_API_KEY}}" target="authentication.token" />
+          <zeebe:input source="https://api.cohere.com" target="baseUrl" />
+          <zeebe:input source="30" target="connectionTimeoutInSeconds" />
+          <zeebe:input source="120" target="readTimeoutInSeconds" />
+          <zeebe:input source="=&#34;/v2/chat&#34;" target="operationPath" />
+          <zeebe:input source="= baseUrl + operationPath" target="url" />
+          <zeebe:input source="POST" target="method" />
+          <zeebe:input source="command-r7b-12-2024" target="classifyModel" />
+          <zeebe:input source="I want to open a joint investment account for my spouse and me" target="classifyText" />
+          <zeebe:input source="=[&#34;account_opening&#34;, &#34;product_inquiry&#34;, &#34;support&#34;]" target="classifyLabels" />
+          <zeebe:input source="={&#34;model&#34;: (if classifyModel = &#34;custom&#34; then classifyModelCustom else classifyModel), &#34;messages&#34;: [{&#34;role&#34;: &#34;system&#34;, &#34;content&#34;: &#34;You are a strict text classifier. Classify the user message into exactly one of these labels: &#34; + string join(classifyLabels, &#34;, &#34;) + &#34;. Respond with exactly one label from the list and nothing else.&#34;}, {&#34;role&#34;: &#34;user&#34;, &#34;content&#34;: classifyText}], &#34;temperature&#34;: 0, &#34;max_tokens&#34;: 20}" target="body" />
+        </zeebe:ioMapping>
+        <zeebe:taskHeaders>
+          <zeebe:header key="resultExpression" value="={cohereLabel: trim(response.body.message.content[1].text)}" />
+          <zeebe:header key="retryBackoff" value="PT10S" />
+        </zeebe:taskHeaders>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_ToClassify</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToRerank</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_CohereRerank" name="Rerank: rank documents">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="io.camunda:http-json:1" retries="3" />
+        <zeebe:ioMapping>
+          <zeebe:input source="rerank" target="operationId" />
+          <zeebe:input source="bearer" target="authentication.type" />
+          <zeebe:input source="{{secrets.COHERE_API_KEY}}" target="authentication.token" />
+          <zeebe:input source="https://api.cohere.com" target="baseUrl" />
+          <zeebe:input source="30" target="connectionTimeoutInSeconds" />
+          <zeebe:input source="120" target="readTimeoutInSeconds" />
+          <zeebe:input source="=&#34;/v2/rerank&#34;" target="operationPath" />
+          <zeebe:input source="= baseUrl + operationPath" target="url" />
+          <zeebe:input source="POST" target="method" />
+          <zeebe:input source="rerank-v3.5" target="rerankModel" />
+          <zeebe:input source="what is the SLA for MLRO review?" target="rerankQuery" />
+          <zeebe:input source="=[&#34;The MLRO must complete reviews within 2 business days.&#34;, &#34;Client onboarding requires two proofs of identity.&#34;, &#34;Escalations route to the compliance team channel.&#34;]" target="rerankDocuments" />
+          <zeebe:input source="2" target="rerankTopN" />
+          <zeebe:input source="={&#34;model&#34;: (if rerankModel = &#34;custom&#34; then rerankModelCustom else rerankModel), &#34;query&#34;: rerankQuery, &#34;documents&#34;: rerankDocuments, &#34;top_n&#34;: number(rerankTopN)}" target="body" />
+          <zeebe:output source="=cohereRanked" target="cohereRanked" />
+          <zeebe:output source="=for r in cohereRanked return rerankDocuments[r.position]" target="rankedDocs" />
+        </zeebe:ioMapping>
+        <zeebe:taskHeaders>
+          <zeebe:header key="resultExpression" value="={cohereRanked: for r in response.body.results return {position: r.index + 1, score: r.relevance_score}}" />
+          <zeebe:header key="retryBackoff" value="PT10S" />
+        </zeebe:taskHeaders>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_ToRerank</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToEnd</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="EndEvent_Smoke" name="Done">
+      <bpmn:incoming>Flow_ToEnd</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_ToChat" sourceRef="StartEvent_Smoke" targetRef="Task_CohereChat" />
+    <bpmn:sequenceFlow id="Flow_ToClassify" sourceRef="Task_CohereChat" targetRef="Task_CohereClassify" />
+    <bpmn:sequenceFlow id="Flow_ToRerank" sourceRef="Task_CohereClassify" targetRef="Task_CohereRerank" />
+    <bpmn:sequenceFlow id="Flow_ToEnd" sourceRef="Task_CohereRerank" targetRef="EndEvent_Smoke" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_CohereSmoke">
+    <bpmndi:BPMNPlane id="BPMNPlane_CohereSmoke" bpmnElement="CohereConnectorSmoke">
+      <bpmndi:BPMNShape id="StartEvent_Smoke_di" bpmnElement="StartEvent_Smoke">
+        <dc:Bounds x="152" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="158" y="145" width="24" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_CohereChat_di" bpmnElement="Task_CohereChat">
+        <dc:Bounds x="240" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_CohereClassify_di" bpmnElement="Task_CohereClassify">
+        <dc:Bounds x="390" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_CohereRerank_di" bpmnElement="Task_CohereRerank">
+        <dc:Bounds x="540" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Smoke_di" bpmnElement="EndEvent_Smoke">
+        <dc:Bounds x="692" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="696" y="145" width="28" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_ToChat_di" bpmnElement="Flow_ToChat">
+        <di:waypoint x="188" y="120" />
+        <di:waypoint x="240" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ToClassify_di" bpmnElement="Flow_ToClassify">
+        <di:waypoint x="340" y="120" />
+        <di:waypoint x="390" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ToRerank_di" bpmnElement="Flow_ToRerank">
+        <di:waypoint x="490" y="120" />
+        <di:waypoint x="540" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ToEnd_di" bpmnElement="Flow_ToEnd">
+        <di:waypoint x="640" y="120" />
+        <di:waypoint x="692" y="120" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
