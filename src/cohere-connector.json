@@ -2,8 +2,8 @@
   "$schema": "https://unpkg.com/@camunda/zeebe-element-templates-json-schema/resources/schema.json",
   "name": "Cohere",
   "id": "io.github.zishan-c8academy.cohere-connector.v1",
-  "version": 3,
-  "description": "Chat, structured JSON output, classification, embeddings, and reranking with Cohere models. Built on the Camunda REST connector: runs on SaaS and Self-Managed with no custom runtime.",
+  "version": 4,
+  "description": "Chat, structured JSON output, classification, translation, embeddings, and reranking with Cohere models. Built on the Camunda REST connector: runs on SaaS and Self-Managed with no custom runtime.",
   "documentationRef": "https://github.com/zishan-c8academy/camunda-connector-cohere",
   "category": {
     "id": "connectors",
@@ -83,6 +83,10 @@
         {
           "name": "Classify: label a text",
           "value": "classify"
+        },
+        {
+          "name": "Translate: translate a text",
+          "value": "translate"
         },
         {
           "name": "Embeddings: embed texts",
@@ -510,15 +514,122 @@
       "placeholder": "=[\"approve\", \"review\", \"reject\"]"
     },
     {
+      "id": "translateModel",
+      "label": "Model",
+      "description": "Translation model. North Small Translate is the dedicated translation model; Command A Translate is the larger option. See the <a href=\"https://docs.cohere.com/docs/models\" target=\"_blank\">model overview</a>.",
+      "group": "input",
+      "type": "Dropdown",
+      "value": "north-small-translate-1.0",
+      "choices": [
+        {
+          "name": "North Small Translate (dedicated, fast)",
+          "value": "north-small-translate-1.0"
+        },
+        {
+          "name": "Command A Translate",
+          "value": "command-a-translate-08-2025"
+        },
+        {
+          "name": "Custom model (enter below)",
+          "value": "custom"
+        }
+      ],
+      "binding": {
+        "type": "zeebe:input",
+        "name": "translateModel"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "translate"
+      }
+    },
+    {
+      "id": "translateModelCustom",
+      "label": "Custom model id",
+      "description": "Exact model id as listed by the <em>list available models</em> operation",
+      "group": "input",
+      "type": "String",
+      "feel": "optional",
+      "constraints": {
+        "notEmpty": true
+      },
+      "binding": {
+        "type": "zeebe:input",
+        "name": "translateModelCustom"
+      },
+      "condition": {
+        "allMatch": [
+          {
+            "property": "operationId",
+            "equals": "translate"
+          },
+          {
+            "property": "translateModel",
+            "equals": "custom"
+          }
+        ]
+      },
+      "placeholder": "e.g. command-a-translate-08-2025"
+    },
+    {
+      "id": "translateText",
+      "label": "Text to translate",
+      "description": "The text to translate. Prefix with = to use process variables, e.g. <code>= documentText</code>",
+      "group": "input",
+      "type": "Text",
+      "feel": "optional",
+      "constraints": {
+        "notEmpty": true
+      },
+      "binding": {
+        "type": "zeebe:input",
+        "name": "translateText"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "translate"
+      },
+      "placeholder": "e.g. = documentText"
+    },
+    {
+      "id": "translateTargetLanguage",
+      "label": "Target language",
+      "description": "Language to translate into, in plain words. The source language is detected by the model.",
+      "group": "input",
+      "type": "String",
+      "feel": "optional",
+      "value": "English",
+      "constraints": {
+        "notEmpty": true
+      },
+      "binding": {
+        "type": "zeebe:input",
+        "name": "translateTargetLanguage"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "translate"
+      },
+      "placeholder": "e.g. English"
+    },
+    {
       "id": "embedModel",
       "label": "Model",
-      "description": "Embedding model; Embed v4 produces 1536-dimension vectors. See the <a href=\"https://docs.cohere.com/reference/embed\" target=\"_blank\">Embed API reference</a>.",
+      "description": "Embedding model. Embed v4 produces 1536-dimension vectors and Embed v5 Pro produces 2048, so do not mix models in one vector index. See the <a href=\"https://docs.cohere.com/reference/embed\" target=\"_blank\">Embed API reference</a>.",
       "group": "input",
       "type": "Dropdown",
       "value": "embed-v4.0",
       "choices": [
         {
-          "name": "Embed v4 (latest, recommended)",
+          "name": "Embed v5 Pro (2048 dimensions)",
+          "value": "embed-v5.0-pro"
+        },
+        {
+          "name": "Embed v5 Fast",
+          "value": "embed-v5.0-fast"
+        },
+        {
+          "name": "Embed v4 (1536 dimensions, default)",
           "value": "embed-v4.0"
         },
         {
@@ -639,10 +750,18 @@
       "description": "Rerank model to use. See the <a href=\"https://docs.cohere.com/reference/rerank\" target=\"_blank\">Rerank API reference</a> and <a href=\"https://docs.cohere.com/docs/rerank-overview\" target=\"_blank\">rerank overview</a>.",
       "group": "input",
       "type": "Dropdown",
-      "value": "rerank-v3.5",
+      "value": "rerank-v5.0-pro",
       "choices": [
         {
-          "name": "Rerank v4 Pro (highest quality)",
+          "name": "Rerank v5 Pro (highest quality)",
+          "value": "rerank-v5.0-pro"
+        },
+        {
+          "name": "Rerank v5 Fast",
+          "value": "rerank-v5.0-fast"
+        },
+        {
+          "name": "Rerank v4 Pro",
           "value": "rerank-v4.0-pro"
         },
         {
@@ -808,6 +927,23 @@
       "condition": {
         "property": "operationId",
         "equals": "classify"
+      }
+    },
+    {
+      "id": "resultExpressionTranslate",
+      "label": "Result expression",
+      "description": "Maps the translation to <code>cohereTranslation</code> plus billed token usage. Adjust as needed.",
+      "group": "output",
+      "type": "Text",
+      "feel": "required",
+      "value": "={cohereTranslation: response.body.message.content[1].text, cohereUsage: response.body.usage.billed_units}",
+      "binding": {
+        "type": "zeebe:taskHeader",
+        "key": "resultExpression"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "translate"
       }
     },
     {
@@ -1083,6 +1219,48 @@
       "condition": {
         "property": "operationId",
         "equals": "classify"
+      }
+    },
+    {
+      "id": "translatePath",
+      "type": "Hidden",
+      "group": "endpoint",
+      "value": "=\"/v2/chat\"",
+      "binding": {
+        "type": "zeebe:input",
+        "name": "operationPath"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "translate"
+      }
+    },
+    {
+      "id": "translateMethod",
+      "type": "Hidden",
+      "group": "endpoint",
+      "value": "POST",
+      "binding": {
+        "type": "zeebe:input",
+        "name": "method"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "translate"
+      }
+    },
+    {
+      "id": "translateBody",
+      "type": "Hidden",
+      "group": "endpoint",
+      "value": "={\"model\": (if translateModel = \"custom\" then translateModelCustom else translateModel), \"messages\": [{\"role\": \"user\", \"content\": \"Translate the following text into \" + translateTargetLanguage + \". Return only the translation, with no commentary.\\n\\n\" + translateText}], \"temperature\": 0}",
+      "binding": {
+        "type": "zeebe:input",
+        "name": "body"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "translate"
       }
     },
     {
