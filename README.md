@@ -1,7 +1,7 @@
 # Cohere Connector for Camunda 8
 
 Bring [Cohere](https://cohere.com) models into your BPMN processes: chat, structured JSON
-output, text classification, embeddings, and reranking, straight from a service task.
+output, text classification, translation, embeddings, and reranking, straight from a service task.
 
 ![Camunda 8](https://img.shields.io/badge/Camunda-8.5%2B-orange)
 ![Cohere API](https://img.shields.io/badge/Cohere%20API-v2-39594D)
@@ -14,8 +14,8 @@ Created by Zishan Ali Khan (Camunda). Community connector, not an official Coher
 
 ## Features
 
-- **6 operations** covering the Cohere platform: chat, schema-guaranteed JSON answers,
-  classification, embeddings, reranking, and model discovery
+- **7 operations** covering the Cohere platform: chat, schema-guaranteed JSON answers,
+  classification, translation, embeddings, reranking, and model discovery
 - **Rerank support**: feed vector-store hits to Cohere Rerank and get relevance-ordered
   documents, the missing middle step of most RAG processes
 - **Zero hosting**: an element template on Camunda's native REST connector
@@ -99,6 +99,7 @@ setup. Details in
 | Chat: ask Cohere | `POST /v2/chat` | [Chat](https://docs.cohere.com/reference/chat) |
 | Chat: structured JSON output | `POST /v2/chat` + `response_format` | [Structured outputs](https://docs.cohere.com/docs/structured-outputs) |
 | Classify: label a text | `POST /v2/chat` (temperature 0, schema-enforced label enum) | [Structured outputs](https://docs.cohere.com/docs/structured-outputs) |
+| Translate: translate a text | `POST /v2/chat` (dedicated translation model, temperature 0) | [Chat](https://docs.cohere.com/reference/chat) |
 | Embeddings: embed texts | `POST /v2/embed` | [Embed](https://docs.cohere.com/reference/embed) |
 | Rerank: rank documents by relevance | `POST /v2/rerank` | [Rerank](https://docs.cohere.com/reference/rerank) |
 | Utility: list available models | `GET /v1/models` | [Models](https://docs.cohere.com/reference/list-models) |
@@ -157,12 +158,34 @@ Operate when a single instance needs explaining. Embeddings expose
 | Command R+ / Command R | Strong generalists, lower cost |
 | Command R7B | Fast, cheap; classification and short answers |
 | Aya Expanse 32B | Multilingual (23 languages) |
-| Embed v4 | Embeddings, 1536 dimensions |
+| North Small Translate, Command A Translate | Translation (the Translate operation) |
+| Embed v4 | Embeddings, 1536 dimensions (default) |
+| Embed v5 Pro / Fast | Embeddings, 2048 dimensions (Pro). Do not mix with v4 in one index |
+| Rerank v5 Pro / Fast | Relevance reranking (default: v5 Pro) |
 | Rerank v4 Pro / Fast, Rerank v3.5 | Relevance reranking |
 
 Every dropdown also offers **Custom model (enter below)** for fine-tuned models or models
 released after this template; the *list available models* operation shows what your key can
 access.
+
+## Use a gateway or private endpoint
+
+`Base URL` (under *Connection*) defaults to `https://api.cohere.com`. Change it to send the
+same task to another host, for example a private Cohere deployment or an internal proxy that
+forwards the Cohere v2 API. The path, request body, and result mapping stay Cohere v2, so the
+host must speak that API.
+
+OpenAI-format gateways such as OpenRouter are a different case. They serve
+`/chat/completions` and return `choices[0].message.content`, so a Base URL change alone is not
+enough. For those, use the AI Agent connector with the OpenAI-compatible provider.
+
+Checked on 2 Nov 2026 against OpenRouter's EU host (`eu.openrouter.ai/api/v1`, path
+`/chat/completions`, key from a cluster secret) from an EU-only workspace: the request
+authenticated and routed, then was refused with `404 No endpoints found supporting your data
+region` for all five Cohere chat models OpenRouter lists (command-a, command-a-plus,
+command-r-plus, command-r, command-r7b). The gateway failed closed instead of sending data
+outside the region. The response shape of a successful OpenRouter call to a Cohere model is
+not verified here.
 
 ## Known limitations
 
@@ -182,6 +205,10 @@ access.
 
 ## Changelog
 
+- **v4**: Translate operation (North Small Translate, Command A Translate); Rerank 5 Pro/Fast
+  (new default) and Embed 5 Pro/Fast added to the dropdowns; gateway notes. Verified on a live
+  Camunda 8.10 SaaS cluster. Embed v4 stays the embeddings default so existing vector indexes
+  keep working.
 - **v3**: classify hardened with a schema-enforced label enum (a plain instruction let
   small models answer question-shaped texts instead of labeling them); customer feedback
   triage sample process
