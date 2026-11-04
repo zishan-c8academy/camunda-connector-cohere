@@ -1,7 +1,8 @@
 # Cohere Connector for Camunda 8
 
 Bring [Cohere](https://cohere.com) models into your BPMN processes: chat, structured JSON
-output, text classification, translation, embeddings, and reranking, straight from a service task.
+output, text classification, translation, document vision, embeddings, and reranking, straight from a
+service task.
 
 ![Camunda 8](https://img.shields.io/badge/Camunda-8.5%2B-orange)
 ![Cohere API](https://img.shields.io/badge/Cohere%20API-v2-39594D)
@@ -14,8 +15,8 @@ Created by Zishan Ali Khan (Camunda). Community connector, not an official Coher
 
 ## Features
 
-- **7 operations** covering the Cohere platform: chat, schema-guaranteed JSON answers,
-  classification, translation, embeddings, reranking, and model discovery
+- **8 operations** covering the Cohere platform: chat, schema-guaranteed JSON answers,
+  classification, translation, reading a document image, embeddings, reranking, and model discovery
 - **Rerank support**: feed vector-store hits to Cohere Rerank and get relevance-ordered
   documents, the missing middle step of most RAG processes
 - **Zero hosting**: an element template on Camunda's native REST connector
@@ -100,6 +101,7 @@ setup. Details in
 | Chat: structured JSON output | `POST /v2/chat` + `response_format` | [Structured outputs](https://docs.cohere.com/docs/structured-outputs) |
 | Classify: label a text | `POST /v2/chat` (temperature 0, schema-enforced label enum) | [Structured outputs](https://docs.cohere.com/docs/structured-outputs) |
 | Translate: translate a text | `POST /v2/chat` (dedicated translation model, temperature 0) | [Chat](https://docs.cohere.com/reference/chat) |
+| Vision: read a document | `POST /v2/chat` with an `image_url` content block | [Image inputs](https://docs.cohere.com/docs/image-inputs) |
 | Embeddings: embed texts | `POST /v2/embed` | [Embed](https://docs.cohere.com/reference/embed) |
 | Rerank: rank documents by relevance | `POST /v2/rerank` | [Rerank](https://docs.cohere.com/reference/rerank) |
 | Utility: list available models | `GET /v1/models` | [Models](https://docs.cohere.com/reference/list-models) |
@@ -159,6 +161,7 @@ Operate when a single instance needs explaining. Embeddings expose
 | Command R7B | Fast, cheap; classification and short answers |
 | Aya Expanse 32B | Multilingual (23 languages) |
 | North Small Translate, Command A Translate | Translation (the Translate operation) |
+| Command A Vision | Reading document images (the Vision operation) |
 | Embed v4 | Embeddings, 1536 dimensions (default) |
 | Embed v5 Pro / Fast | Embeddings, 2048 dimensions (Pro). Do not mix with v4 in one index |
 | Rerank v5 Pro / Fast | Relevance reranking (default: v5 Pro) |
@@ -187,6 +190,21 @@ command-r-plus, command-r, command-r7b). The gateway failed closed instead of se
 outside the region. The response shape of a successful OpenRouter call to a Cohere model is
 not verified here.
 
+## Read a document image
+
+The Vision operation takes a Camunda document reference, for example `= documents[1]` from a form
+file picker or from `POST /v2/documents`. The connector runtime turns it into a pre-signed link with
+the `createLink` [intrinsic function](https://docs.camunda.io/docs/components/connectors/advanced-topics/intrinsic-functions/)
+and Cohere fetches the image from that link. The link expires after *Link lifetime* (default
+`PT10M`). The result lands in `cohereText`.
+
+Verified on 3 Nov 2026 on Camunda 8.10 SaaS with `command-a-vision-07-2025`: specimen passport, utility
+bill and bank statement images (PNG) were transcribed in full, including bilingual labels and the
+passport's machine-readable lines.
+
+`createLink` needs cloud document storage (AWS S3 or Google Cloud Storage). Camunda SaaS has it;
+on Self-Managed, configure one first. Cohere accepts PNG, JPEG, WEBP and non-animated GIF.
+
 ## Known limitations
 
 - **`cohereJson` is a string.** FEEL has no JSON-parse function, so the structured output
@@ -205,6 +223,8 @@ not verified here.
 
 ## Changelog
 
+- **v5**: Vision operation: read a Camunda document image with Command A Vision through a short-lived
+  pre-signed link. Verified on Camunda 8.10 SaaS.
 - **v4**: Translate operation (North Small Translate, Command A Translate); Rerank 5 Pro/Fast
   (new default) and Embed 5 Pro/Fast added to the dropdowns; gateway notes. Verified on a live
   Camunda 8.10 SaaS cluster. Embed v4 stays the embeddings default so existing vector indexes
