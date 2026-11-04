@@ -2,8 +2,8 @@
   "$schema": "https://unpkg.com/@camunda/zeebe-element-templates-json-schema/resources/schema.json",
   "name": "Cohere",
   "id": "io.github.zishan-c8academy.cohere-connector.v1",
-  "version": 4,
-  "description": "Chat, structured JSON output, classification, translation, embeddings, and reranking with Cohere models. Built on the Camunda REST connector: runs on SaaS and Self-Managed with no custom runtime.",
+  "version": 5,
+  "description": "Chat, structured JSON output, classification, translation, document vision, embeddings, and reranking with Cohere models. Built on the Camunda REST connector: runs on SaaS and Self-Managed with no custom runtime.",
   "documentationRef": "https://github.com/zishan-c8academy/camunda-connector-cohere",
   "category": {
     "id": "connectors",
@@ -87,6 +87,10 @@
         {
           "name": "Translate: translate a text",
           "value": "translate"
+        },
+        {
+          "name": "Vision: read a document",
+          "value": "vision"
         },
         {
           "name": "Embeddings: embed texts",
@@ -613,6 +617,161 @@
       "placeholder": "e.g. English"
     },
     {
+      "id": "visionModel",
+      "label": "Model",
+      "description": "Vision model. See <a href=\"https://docs.cohere.com/docs/image-inputs\" target=\"_blank\">image inputs</a>. PNG, JPEG, WEBP and non-animated GIF are supported.",
+      "group": "input",
+      "type": "Dropdown",
+      "value": "command-a-vision-07-2025",
+      "choices": [
+        {
+          "name": "Command A Vision",
+          "value": "command-a-vision-07-2025"
+        },
+        {
+          "name": "Custom model (enter below)",
+          "value": "custom"
+        }
+      ],
+      "binding": {
+        "type": "zeebe:input",
+        "name": "visionModel"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "vision"
+      }
+    },
+    {
+      "id": "visionModelCustom",
+      "label": "Custom model id",
+      "description": "Exact model id as listed by the <em>list available models</em> operation",
+      "group": "input",
+      "type": "String",
+      "feel": "optional",
+      "constraints": {
+        "notEmpty": true
+      },
+      "binding": {
+        "type": "zeebe:input",
+        "name": "visionModelCustom"
+      },
+      "condition": {
+        "allMatch": [
+          {
+            "property": "operationId",
+            "equals": "vision"
+          },
+          {
+            "property": "visionModel",
+            "equals": "custom"
+          }
+        ]
+      }
+    },
+    {
+      "id": "visionDocument",
+      "label": "Document",
+      "description": "A Camunda document reference, for example from a form file picker or the documents API: <code>= documents[1]</code>. The connector runtime hands Cohere a pre-signed link to it that expires after the link lifetime below.",
+      "group": "input",
+      "type": "String",
+      "feel": "required",
+      "constraints": {
+        "notEmpty": true
+      },
+      "binding": {
+        "type": "zeebe:input",
+        "name": "visionDocument"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "vision"
+      },
+      "placeholder": "e.g. = documents[1]"
+    },
+    {
+      "id": "visionPrompt",
+      "label": "Instruction",
+      "description": "What to do with the image.",
+      "group": "input",
+      "type": "Text",
+      "feel": "optional",
+      "value": "Transcribe all text printed on this document exactly, keeping the original language. Plain text only.",
+      "constraints": {
+        "notEmpty": true
+      },
+      "binding": {
+        "type": "zeebe:input",
+        "name": "visionPrompt"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "vision"
+      }
+    },
+    {
+      "id": "visionDetail",
+      "label": "Detail",
+      "description": "High reads small print best; low is cheaper and faster.",
+      "group": "input",
+      "type": "Dropdown",
+      "value": "high",
+      "choices": [
+        {
+          "name": "High",
+          "value": "high"
+        },
+        {
+          "name": "Auto",
+          "value": "auto"
+        },
+        {
+          "name": "Low",
+          "value": "low"
+        }
+      ],
+      "binding": {
+        "type": "zeebe:input",
+        "name": "visionDetail"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "vision"
+      }
+    },
+    {
+      "id": "visionLinkTtl",
+      "label": "Link lifetime",
+      "description": "ISO 8601 duration for the pre-signed document link Cohere fetches. Keep it short.",
+      "group": "input",
+      "type": "String",
+      "value": "PT10M",
+      "binding": {
+        "type": "zeebe:input",
+        "name": "visionLinkTtl"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "vision"
+      }
+    },
+    {
+      "id": "visionMaxTokens",
+      "label": "Max tokens",
+      "description": "Keep as plain text.",
+      "group": "input",
+      "type": "String",
+      "value": "800",
+      "binding": {
+        "type": "zeebe:input",
+        "name": "visionMaxTokens"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "vision"
+      }
+    },
+    {
       "id": "embedModel",
       "label": "Model",
       "description": "Embedding model. Embed v4 produces 1536-dimension vectors and Embed v5 Pro produces 2048, so do not mix models in one vector index. See the <a href=\"https://docs.cohere.com/reference/embed\" target=\"_blank\">Embed API reference</a>.",
@@ -947,6 +1106,23 @@
       }
     },
     {
+      "id": "resultExpressionVision",
+      "label": "Result expression",
+      "description": "Maps the model output to <code>cohereText</code> plus billed token usage.",
+      "group": "output",
+      "type": "Text",
+      "feel": "required",
+      "value": "={cohereText: response.body.message.content[1].text, cohereUsage: response.body.usage.billed_units}",
+      "binding": {
+        "type": "zeebe:taskHeader",
+        "key": "resultExpression"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "vision"
+      }
+    },
+    {
       "id": "resultExpressionEmbed",
       "label": "Result expression",
       "description": "<code>cohereEmbeddings</code> holds one float vector per input text, in input order",
@@ -1261,6 +1437,48 @@
       "condition": {
         "property": "operationId",
         "equals": "translate"
+      }
+    },
+    {
+      "id": "visionPath",
+      "type": "Hidden",
+      "group": "endpoint",
+      "value": "=\"/v2/chat\"",
+      "binding": {
+        "type": "zeebe:input",
+        "name": "operationPath"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "vision"
+      }
+    },
+    {
+      "id": "visionMethod",
+      "type": "Hidden",
+      "group": "endpoint",
+      "value": "POST",
+      "binding": {
+        "type": "zeebe:input",
+        "name": "method"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "vision"
+      }
+    },
+    {
+      "id": "visionBody",
+      "type": "Hidden",
+      "group": "endpoint",
+      "value": "={\"model\": (if visionModel = \"custom\" then visionModelCustom else visionModel), \"messages\": [{\"role\": \"user\", \"content\": [{\"type\": \"text\", \"text\": visionPrompt}, {\"type\": \"image_url\", \"image_url\": {\"url\": {\"camunda.function.type\": \"createLink\", \"params\": [visionDocument, visionLinkTtl]}, \"detail\": visionDetail}}]}], \"temperature\": 0, \"max_tokens\": number(visionMaxTokens)}",
+      "binding": {
+        "type": "zeebe:input",
+        "name": "body"
+      },
+      "condition": {
+        "property": "operationId",
+        "equals": "vision"
       }
     },
     {
